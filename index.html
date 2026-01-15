@@ -3,85 +3,81 @@
 <head>
 <meta charset="UTF-8">
 <title>Map Reservation System</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-/* ===== GLOBAL ===== */
 body {
   margin: 0;
   font-family: Arial, sans-serif;
-  overflow: hidden;
   background: #0b1d3a;
   color: #e6ebff;
+  overflow: hidden;
 }
 
-/* ===== HEADER ===== */
+/* HEADER */
 .header {
-  height: 180px;
-  width: 100%;
-  overflow: hidden;
-  background: #0b1d3a;
+  height: 160px;
 }
 .header img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  pointer-events: none;
 }
 
-/* ===== TOP BAR ===== */
+/* TOP BAR */
 .topbar {
   padding: 10px;
   background: #08162e;
-  color: #ffffff;
   font-size: 18px;
   border-bottom: 1px solid #1c2f5a;
 }
 
-/* ===== MAIN ===== */
+/* MAIN */
 .container {
   display: flex;
-  height: calc(100vh - 230px);
+  height: calc(100vh - 200px);
 }
 
-/* ===== LEFT PANEL ===== */
+/* LEFT */
 .left {
   width: 300px;
   background: #081b3a;
-  border-right: 1px solid #1c2f5a;
   overflow-y: auto;
 }
 
 .member {
   padding: 10px;
   border-bottom: 1px solid #142a52;
-  color: #dbe2ff;
 }
 
-/* ACTIVE QUEUE */
 .member.active {
   background: #ffd43b;
   color: #000;
   font-weight: bold;
-  animation: blink 1s infinite;
+  animation: blink 1s infinite, glow 1.5s infinite;
 }
 
-/* RESERVED */
 .member.reserved {
   color: #9aa4c7;
   font-style: italic;
-  animation: none;
 }
 
-/* BLINK */
 @keyframes blink {
   50% { background: #fff3bf; }
 }
 
-/* ===== MAP AREA ===== */
+@keyframes glow {
+  0% { box-shadow: 0 0 5px #ffd43b; }
+  50% { box-shadow: 0 0 20px #ffd43b; }
+  100% { box-shadow: 0 0 5px #ffd43b; }
+}
+
+/* MAP */
 .map-area {
   flex: 1;
   overflow: auto;
   background: #000814;
+  touch-action: none;
 }
 
 .map-wrapper {
@@ -91,14 +87,15 @@ body {
 
 .map-wrapper img {
   display: block;
+  max-width: 100%;
   user-select: none;
 }
 
-/* ===== DOT ===== */
+/* DOT */
 .dot {
   position: absolute;
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
   background: #ff2b2b;
   color: white;
   font-size: 20px;
@@ -107,18 +104,17 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 0 12px rgba(255,0,0,0.9);
   pointer-events: none;
-  box-shadow: 0 0 8px rgba(255,0,0,0.9);
 }
 
-/* ===== CONTROLS ===== */
+/* CONTROLS */
 .controls {
   position: fixed;
-  right: 15px;
-  bottom: 15px;
+  right: 10px;
+  bottom: 10px;
   z-index: 10;
 }
-
 .controls button {
   padding: 6px 12px;
   margin: 3px;
@@ -126,68 +122,57 @@ body {
   color: #fff;
   border: 1px solid #294a8a;
   border-radius: 4px;
-  cursor: pointer;
-}
-
-.controls button:hover {
-  background: #1b3f7a;
 }
 </style>
 </head>
 
 <body>
 
-<!-- HEADER -->
 <div class="header">
-  <img src="mythic_header.png" alt="Header">
+  <img src="mythic_header.png">
 </div>
 
-<!-- TOP BAR -->
 <div class="topbar" id="statusBar">
   Current Queue: <span id="currentQueue">1</span> — Click a spot on the map
 </div>
 
-<!-- MAIN -->
 <div class="container">
-
-  <!-- LEFT -->
   <div class="left" id="memberList"></div>
 
-  <!-- MAP -->
-  <div class="map-area">
+  <div class="map-area" id="mapArea">
     <div class="map-wrapper" id="mapWrapper">
-      <img id="map" src="map.jpg" alt="Map">
+      <img id="map" src="map.jpg">
       <div id="dots"></div>
     </div>
   </div>
-
 </div>
 
-<!-- CONTROLS -->
 <div class="controls">
   <button onclick="zoomIn()">+</button>
   <button onclick="zoomOut()">−</button>
-  <button onclick="resetZoom()">Reset Zoom</button>
+  <button onclick="resetZoom()">Reset</button>
   <hr>
-  <button onclick="adminUndo()">Undo (Admin)</button>
-  <button onclick="adminReset()">Reset (Admin)</button>
+  <button onclick="adminUndo()">Undo</button>
+  <button onclick="adminReset()">Reset</button>
 </div>
 
 <script>
-/* ===== MEMBER NAMES ===== */
 const memberNames = [
-  "LGoHo","GinTonic","Cabernet","SLANE","TheDalmore","Wulinagye",
-  "AmericanoNoSweet","Asahi","GoldLabel","MadamREDRUM","21stHIBIKI",
-  "Highball","BlueLaBel","HalesBlueBoy","เสือฝ้าย",
-  "CaramelMacchiato","17thHIBIKI"
+"LGoHo","GinTonic","Cabernet","SLANE","TheDalmore","Wulinagye",
+"AmericanoNoSweet","Asahi","GoldLabel","MadamREDRUM","21stHIBIKI",
+"Highball","BlueLaBel","HalesBlueBoy","เสือฝ้าย",
+"CaramelMacchiato","17thHIBIKI"
 ];
 
-let queue = 1;
-let scale = 1;
-let locked = false;
+let state = JSON.parse(localStorage.getItem("mapState")) || {
+  queue: 1,
+  booked: {},
+  history: [],
+  scale: 1
+};
 
-const booked = {};
-const historyStack = [];
+let { queue, booked, history, scale } = state;
+let locked = false;
 
 const memberList = document.getElementById("memberList");
 const map = document.getElementById("map");
@@ -195,117 +180,99 @@ const mapWrapper = document.getElementById("mapWrapper");
 const dots = document.getElementById("dots");
 const statusBar = document.getElementById("statusBar");
 
-/* INIT MEMBERS */
+/* MEMBERS */
 const members = [];
-memberNames.forEach((name, i) => {
-  const div = document.createElement("div");
-  div.className = "member";
-  div.textContent = `${i + 1}. ${name}`;
+memberNames.forEach((name,i)=>{
+  const trophy = i===0?"🥇":i===1?"🥈":i===2?"🥉":"";
+  const div=document.createElement("div");
+  div.className="member";
+  div.textContent=`${i+1}. ${trophy} ${name}`;
   memberList.appendChild(div);
   members.push(div);
 });
-updateMemberHighlight();
 
-/* MAP CLICK */
-mapWrapper.addEventListener("click", e => {
-  if (locked) return alert("System is locked");
-  if (e.target !== map) return;
-
-  const rect = map.getBoundingClientRect();
-  const x = Math.floor((e.clientX - rect.left) / scale);
-  const y = Math.floor((e.clientY - rect.top) / scale);
-  const key = `${x}_${y}`;
-
-  if (booked[key]) return alert("This spot is already reserved");
-
-  if (!confirm("Confirm this selection?")) return;
-
-  booked[key] = true;
-  const dot = drawDot(x, y);
-  historyStack.push({ key, dot, queue });
-
-  members[queue - 1].textContent += " - Reserved";
-  members[queue - 1].classList.remove("active");
-  members[queue - 1].classList.add("reserved");
-
-  if (queue === memberNames.length) {
-    locked = true;
-    statusBar.innerHTML = `All queues completed — <b>LOCKED</b>`;
-    return;
-  }
-
-  queue++;
-  document.getElementById("currentQueue").textContent = queue;
-  updateMemberHighlight();
+/* RESTORE DOTS */
+Object.keys(booked).forEach(k=>{
+  const [x,y]=k.split("_").map(Number);
+  drawDot(x,y,booked[k]);
 });
 
-/* DRAW DOT */
-function drawDot(x, y) {
-  const dot = document.createElement("div");
-  dot.className = "dot";
-  dot.textContent = queue;
-  dot.style.left = (x - 21) + "px";
-  dot.style.top = (y - 21) + "px";
-  dots.appendChild(dot);
-  return dot;
-}
-
 /* HIGHLIGHT */
-function updateMemberHighlight() {
-  members.forEach(m => m.classList.remove("active"));
-  if (members[queue - 1]) members[queue - 1].classList.add("active");
+function updateHighlight(){
+  members.forEach(m=>m.classList.remove("active"));
+  if(members[queue-1]) members[queue-1].classList.add("active");
+}
+updateHighlight();
+
+/* MAP CLICK */
+mapWrapper.addEventListener("click",e=>{
+  if(e.target!==map) return;
+  const r=map.getBoundingClientRect();
+  const x=Math.floor((e.clientX-r.left)/scale);
+  const y=Math.floor((e.clientY-r.top)/scale);
+  const key=`${x}_${y}`;
+  if(booked[key]) return alert("Already reserved");
+  if(!confirm("Confirm this selection?")) return;
+
+  booked[key]=queue;
+  history.push({key});
+  drawDot(x,y,queue);
+
+  members[queue-1].classList.add("reserved");
+  members[queue-1].textContent+=" - Reserved";
+
+  if(queue===memberNames.length){
+    locked=true;
+    statusBar.innerHTML="All queues completed — LOCKED";
+  } else {
+    queue++;
+    document.getElementById("currentQueue").innerText=queue;
+    updateHighlight();
+  }
+  save();
+});
+
+/* DOT */
+function drawDot(x,y,n){
+  const d=document.createElement("div");
+  d.className="dot";
+  d.textContent=n;
+  d.style.left=(x-22)+"px";
+  d.style.top=(y-22)+"px";
+  dots.appendChild(d);
 }
 
 /* ZOOM */
-const MIN_ZOOM = 0.5, MAX_ZOOM = 3, STEP = 0.1;
-function applyZoom(){ mapWrapper.style.transform = `scale(${scale})`; }
-function zoomIn(){ if(scale<MAX_ZOOM){scale+=STEP;applyZoom();} }
-function zoomOut(){ if(scale>MIN_ZOOM){scale-=STEP;applyZoom();} }
-function resetZoom(){ scale=1;applyZoom(); }
+function applyZoom(){mapWrapper.style.transform=`scale(${scale})`;save();}
+function zoomIn(){scale=Math.min(3,scale+0.1);applyZoom();}
+function zoomOut(){scale=Math.max(0.5,scale-0.1);applyZoom();}
+function resetZoom(){scale=1;applyZoom();}
+applyZoom();
 
-mapWrapper.addEventListener("wheel", e=>{
-  e.preventDefault();
-  e.deltaY<0?zoomIn():zoomOut();
-},{passive:false});
-
-/* ADMIN UNDO */
-function adminUndo(){
-  if(prompt("Enter admin password:")!=="7890") return;
-  if(!historyStack.length) return alert("Nothing to undo");
-
-  const last = historyStack.pop();
-  last.dot.remove();
-  delete booked[last.key];
-
-  locked = false;
-  queue = last.queue;
-  statusBar.innerHTML = `Current Queue: <span id="currentQueue">${queue}</span> — Click a spot on the map`;
-
-  members[queue - 1].textContent = `${queue}. ${memberNames[queue - 1]}`;
-  members[queue - 1].classList.remove("reserved");
-  updateMemberHighlight();
+/* SAVE */
+function save(){
+  localStorage.setItem("mapState",JSON.stringify({queue,booked,history,scale}));
 }
 
-/* ADMIN RESET */
+/* ADMIN */
+function adminUndo(){
+  if(prompt("Password")!=="7890")return;
+  const last=history.pop();
+  if(!last)return;
+  delete booked[last.key];
+  dots.lastChild.remove();
+  queue--;
+  members[queue-1].classList.remove("reserved");
+  members[queue-1].textContent=`${queue}. ${memberNames[queue-1]}`;
+  locked=false;
+  updateHighlight();
+  save();
+}
+
 function adminReset(){
-  if(prompt("Enter admin password:")!=="7890") return;
-
-  dots.innerHTML = "";
-  Object.keys(booked).forEach(k=>delete booked[k]);
-  historyStack.length = 0;
-
-  members.forEach((m,i)=>{
-    m.textContent = `${i+1}. ${memberNames[i]}`;
-    m.classList.remove("reserved","active");
-  });
-
-  queue = 1;
-  locked = false;
-  scale = 1;
-  applyZoom();
-
-  statusBar.innerHTML = `Current Queue: <span id="currentQueue">1</span> — Click a spot on the map`;
-  updateMemberHighlight();
+  if(prompt("Password")!=="7890")return;
+  localStorage.removeItem("mapState");
+  location.reload();
 }
 </script>
 
