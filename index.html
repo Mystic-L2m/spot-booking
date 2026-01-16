@@ -95,26 +95,27 @@ body{
   user-select:none;
 }
 
-/* ===== DOT ===== */
+/* ===== DOT (ลดขนาด 20%) ===== */
 .dot{
   position:absolute;
-  width:48px;
-  height:48px;
+  width:38px;
+  height:38px;
   border-radius:50%;
   background:#00ffff;
   color:#002;
-  font-size:20px;
+  font-size:16px;
   font-weight:bold;
   display:flex;
   align-items:center;
   justify-content:center;
-  box-shadow:0 0 15px #0ff,inset 0 0 12px #fff;
+  box-shadow:0 0 12px #0ff,inset 0 0 8px #fff;
+  pointer-events:none;
 }
 .dot::after{
   content:'';
   position:absolute;
-  width:70px;
-  height:70px;
+  width:56px;
+  height:56px;
   border:2px solid #0ff;
   border-radius:50%;
   animation:ring 1.5s infinite;
@@ -144,7 +145,7 @@ body{
 <body>
 
 <div class="header">
-  <div class="mystic-text">✦ MYSTIC FARMSPOT RESERVATION ✦</div>
+  <div class="mystic-text">✦ MYSTIC FarmSpotReservation ✦</div>
 </div>
 
 <div class="topbar" id="statusBar">
@@ -170,12 +171,10 @@ body{
   <button onclick="adminReset()">Reset</button>
 </div>
 
-<!-- ===== FIREBASE ===== -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-/* 🔴 ใส่ค่าของคุณตรงนี้ */
 const firebaseConfig = {
   apiKey: "AIzaSyBaVE7ARMQVlX7j9G-X67F46148I0ucBZo",
   authDomain: "mystic-8e71f.firebaseapp.com",
@@ -187,13 +186,11 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const stateRef = ref(db, "mysticState");
 
-/* ===== DATA ===== */
 const names=[
 "LGoHo","GinTonic","Cabernet","SLANE","TheDalmore","Wulinagye",
 "AmericanoNoSweet","Asahi","GoldLabel","MadamREDRUM","21stHIBIKI",
 "Highball","BlueLaBel","HalesBlueBoy","เสือฝ้าย","CaramelMacchiato","17thHIBIKI"
 ];
-const trophy=["🥇","🥈","🥉"];
 
 let queue=1,locked=false,scale=1;
 let booked=[];
@@ -201,16 +198,24 @@ let booked=[];
 const members=[],dots=document.getElementById("dots");
 const list=document.getElementById("memberList");
 
-/* ===== INIT LIST ===== */
 names.forEach((n,i)=>{
   const d=document.createElement("div");
   d.className="member";
-  d.textContent=`${i+1}. ${i<3?trophy[i]:""} ${n}`;
+  d.textContent=`${i+1}. ${n}`;
   list.appendChild(d);
   members.push(d);
 });
 
-/* ===== RENDER ===== */
+/* ===== REALTIME ===== */
+onValue(stateRef,snap=>{
+  const s=snap.val();
+  if(!s)return;
+  queue=s.queue;
+  locked=s.locked;
+  booked=s.booked||[];
+  render();
+});
+
 function render(){
   dots.innerHTML="";
   members.forEach(m=>m.classList.remove("active","reserved"));
@@ -230,53 +235,31 @@ function render(){
     locked?"ALL RESERVED — LOCKED":`Current Queue: ${queue}`;
 }
 
-/* ===== REALTIME LISTENER ===== */
-onValue(stateRef,snap=>{
-  const s=snap.val();
-  if(!s)return;
-  queue=s.queue;
-  locked=s.locked;
-  booked=s.booked||[];
-  render();
-});
-
-/* ===== MAP CLICK ===== */
 mapWrapper.onclick=e=>{
   if(locked||e.target.id!=="map")return;
-
   if(!confirm("Confirm reservation?"))return;
 
   const r=map.getBoundingClientRect();
   const x=Math.floor((e.clientX-r.left)/scale);
   const y=Math.floor((e.clientY-r.top)/scale);
 
-  if(booked.some(p=>Math.hypot(p.x-x,p.y-y)<50)){
+  if(booked.some(p=>Math.hypot(p.x-x,p.y-y)<40)){
     alert("Spot already taken");
     return;
   }
 
   booked.push({x,y,q:queue});
-
-  if(queue===names.length){
-    locked=true;
-  }else{
-    queue++;
-  }
-  save();
+  if(queue===names.length){locked=true}else{queue++}
+  set(stateRef,{queue,locked,booked});
 };
 
-/* ===== SAVE ===== */
-function save(){
-  set(stateRef,{queue,locked,booked});
-}
-
-/* ===== DRAW DOT ===== */
+/* ===== DRAW DOT (offset ใหม่ 19px) ===== */
 function drawDot(x,y,q){
   const d=document.createElement("div");
   d.className="dot";
   d.textContent=q;
-  d.style.left=(x-24)+"px";
-  d.style.top=(y-24)+"px";
+  d.style.left=(x-19)+"px";
+  d.style.top=(y-19)+"px";
   dots.appendChild(d);
 }
 
@@ -289,11 +272,10 @@ window.resetZoom=()=>{scale=1;applyZoom()}
 /* ===== ADMIN ===== */
 window.adminUndo=()=>{
   if(prompt("Password")!=="7890")return;
-  if(!booked.length)return;
   booked.pop();
   queue=Math.max(queue-1,1);
   locked=false;
-  save();
+  set(stateRef,{queue,locked,booked});
 }
 window.adminReset=()=>{
   if(prompt("Password")!=="7890")return;
@@ -303,5 +285,3 @@ window.adminReset=()=>{
 
 </body>
 </html>
-
-
