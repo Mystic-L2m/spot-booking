@@ -22,7 +22,6 @@ body{
   border-bottom:2px solid #0ff;
   overflow:hidden;
   position:relative;
-  background:#020b1a;
 }
 .mystic-text{
   position:absolute;
@@ -95,27 +94,27 @@ body{
   user-select:none;
 }
 
-/* ===== DOT (ลดขนาด 20%) ===== */
+/* ===== DOT (ลดขนาดลงอีก 30%) ===== */
 .dot{
   position:absolute;
-  width:38px;
-  height:38px;
+  width:27px;
+  height:27px;
   border-radius:50%;
   background:#00ffff;
   color:#002;
-  font-size:16px;
+  font-size:12px;
   font-weight:bold;
   display:flex;
   align-items:center;
   justify-content:center;
-  box-shadow:0 0 12px #0ff,inset 0 0 8px #fff;
+  box-shadow:0 0 8px #0ff,inset 0 0 6px #fff;
   pointer-events:none;
 }
 .dot::after{
   content:'';
   position:absolute;
-  width:56px;
-  height:56px;
+  width:39px;
+  height:39px;
   border:2px solid #0ff;
   border-radius:50%;
   animation:ring 1.5s infinite;
@@ -191,6 +190,7 @@ const names=[
 "AmericanoNoSweet","Asahi","GoldLabel","MadamREDRUM","21stHIBIKI",
 "Highball","BlueLaBel","HalesBlueBoy","เสือฝ้าย","CaramelMacchiato","17thHIBIKI"
 ];
+const trophy=["🥇","🥈","🥉"];
 
 let queue=1,locked=false,scale=1;
 let booked=[];
@@ -201,19 +201,9 @@ const list=document.getElementById("memberList");
 names.forEach((n,i)=>{
   const d=document.createElement("div");
   d.className="member";
-  d.textContent=`${i+1}. ${n}`;
+  d.textContent=`${i+1}. ${i<3?trophy[i]:""} ${n}`;
   list.appendChild(d);
   members.push(d);
-});
-
-/* ===== REALTIME ===== */
-onValue(stateRef,snap=>{
-  const s=snap.val();
-  if(!s)return;
-  queue=s.queue;
-  locked=s.locked;
-  booked=s.booked||[];
-  render();
 });
 
 function render(){
@@ -230,10 +220,18 @@ function render(){
     members[queue-1].classList.add("active");
   }
 
-  document.getElementById("currentQueue").textContent=queue;
   document.getElementById("statusBar").textContent=
     locked?"ALL RESERVED — LOCKED":`Current Queue: ${queue}`;
 }
+
+onValue(stateRef,snap=>{
+  const s=snap.val();
+  if(!s)return;
+  queue=s.queue;
+  locked=s.locked;
+  booked=s.booked||[];
+  render();
+});
 
 mapWrapper.onclick=e=>{
   if(locked||e.target.id!=="map")return;
@@ -243,23 +241,27 @@ mapWrapper.onclick=e=>{
   const x=Math.floor((e.clientX-r.left)/scale);
   const y=Math.floor((e.clientY-r.top)/scale);
 
-  if(booked.some(p=>Math.hypot(p.x-x,p.y-y)<40)){
-    alert("Spot already taken");
+  if(booked.some(p=>Math.hypot(p.x-x,p.y-y)<28)){
+    alert("Spot already taken, please select another point.");
     return;
   }
 
   booked.push({x,y,q:queue});
-  if(queue===names.length){locked=true}else{queue++}
-  set(stateRef,{queue,locked,booked});
+  queue===names.length ? locked=true : queue++;
+  save();
 };
 
-/* ===== DRAW DOT (offset ใหม่ 19px) ===== */
+function save(){
+  set(stateRef,{queue,locked,booked});
+}
+
+/* ===== DRAW DOT (offset ใหม่) ===== */
 function drawDot(x,y,q){
   const d=document.createElement("div");
   d.className="dot";
   d.textContent=q;
-  d.style.left=(x-19)+"px";
-  d.style.top=(y-19)+"px";
+  d.style.left=(x-14)+"px";
+  d.style.top=(y-14)+"px";
   dots.appendChild(d);
 }
 
@@ -272,10 +274,11 @@ window.resetZoom=()=>{scale=1;applyZoom()}
 /* ===== ADMIN ===== */
 window.adminUndo=()=>{
   if(prompt("Password")!=="7890")return;
+  if(!booked.length)return;
   booked.pop();
   queue=Math.max(queue-1,1);
   locked=false;
-  set(stateRef,{queue,locked,booked});
+  save();
 }
 window.adminReset=()=>{
   if(prompt("Password")!=="7890")return;
