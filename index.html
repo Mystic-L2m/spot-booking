@@ -2,126 +2,141 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Map Reservation System</title>
+<title>Mystic Map Reservation (Realtime)</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
+
 <style>
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: #0b1d3a;
-  color: #e6ebff;
-  overflow: hidden;
+body{
+  margin:0;
+  font-family:'Orbitron',sans-serif;
+  background:#020b1a;
+  color:#9befff;
+  overflow:hidden;
 }
 
-/* HEADER */
-.header {
-  height: 160px;
+/* ===== HEADER ===== */
+.header{
+  height:110px;
+  border-bottom:2px solid #0ff;
+  overflow:hidden;
+  position:relative;
+  background:#020b1a;
 }
-.header img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+.mystic-text{
+  position:absolute;
+  top:50%;
+  white-space:nowrap;
+  font-size:42px;
+  color:#9befff;
+  text-shadow:0 0 15px #0ff,0 0 40px #0ff;
+  transform:translateY(-50%);
+  animation:moveText 15s linear infinite;
 }
-
-/* TOP BAR */
-.topbar {
-  padding: 10px;
-  background: #08162e;
-  font-size: 18px;
-  border-bottom: 1px solid #1c2f5a;
-}
-
-/* MAIN */
-.container {
-  display: flex;
-  height: calc(100vh - 200px);
-}
-
-/* LEFT */
-.left {
-  width: 300px;
-  background: #081b3a;
-  overflow-y: auto;
+@keyframes moveText{
+  from{left:-100%}
+  to{left:100%}
 }
 
-.member {
-  padding: 10px;
-  border-bottom: 1px solid #142a52;
+/* ===== TOP BAR ===== */
+.topbar{
+  padding:10px;
+  background:linear-gradient(90deg,#021b3a,#033b66,#021b3a);
+  border-bottom:1px solid #0ff;
 }
 
-.member.active {
-  background: #ffd43b;
-  color: #000;
-  font-weight: bold;
-  animation: blink 1s infinite, glow 1.5s infinite;
+/* ===== MAIN ===== */
+.container{
+  display:flex;
+  height:calc(100vh - 150px);
 }
 
-.member.reserved {
-  color: #9aa4c7;
-  font-style: italic;
+/* ===== LEFT ===== */
+.left{
+  width:300px;
+  background:#021b3a;
+  border-right:1px solid #0ff;
+  overflow-y:auto;
+}
+.member{
+  padding:10px;
+  border-bottom:1px solid rgba(0,255,255,.2);
+}
+.member.active{
+  background:rgba(0,255,255,.25);
+  animation:glowWave 1.2s infinite;
+}
+.member.reserved{
+  opacity:.55;
+}
+@keyframes glowWave{
+  0%{box-shadow:0 0 5px #0ff}
+  50%{box-shadow:0 0 25px #0ff}
+  100%{box-shadow:0 0 5px #0ff}
 }
 
-@keyframes blink {
-  50% { background: #fff3bf; }
+/* ===== MAP ===== */
+.map-area{
+  flex:1;
+  overflow:auto;
+  background:
+    linear-gradient(rgba(0,255,255,.15) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,255,255,.15) 1px, transparent 1px),
+    #000;
+  background-size:40px 40px;
+}
+.map-wrapper{
+  position:relative;
+  transform-origin:top left;
+}
+.map-wrapper img{
+  display:block;
+  user-select:none;
 }
 
-@keyframes glow {
-  0% { box-shadow: 0 0 5px #ffd43b; }
-  50% { box-shadow: 0 0 20px #ffd43b; }
-  100% { box-shadow: 0 0 5px #ffd43b; }
+/* ===== DOT ===== */
+.dot{
+  position:absolute;
+  width:48px;
+  height:48px;
+  border-radius:50%;
+  background:#00ffff;
+  color:#002;
+  font-size:20px;
+  font-weight:bold;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow:0 0 15px #0ff,inset 0 0 12px #fff;
+}
+.dot::after{
+  content:'';
+  position:absolute;
+  width:70px;
+  height:70px;
+  border:2px solid #0ff;
+  border-radius:50%;
+  animation:ring 1.5s infinite;
+}
+@keyframes ring{
+  0%{transform:scale(.6);opacity:1}
+  100%{transform:scale(1.2);opacity:0}
 }
 
-/* MAP */
-.map-area {
-  flex: 1;
-  overflow: auto;
-  background: #000814;
-  touch-action: none;
+/* ===== CONTROLS ===== */
+.controls{
+  position:fixed;
+  right:12px;
+  bottom:12px;
 }
-
-.map-wrapper {
-  position: relative;
-  transform-origin: top left;
-}
-
-.map-wrapper img {
-  display: block;
-  max-width: 100%;
-  user-select: none;
-}
-
-/* DOT */
-.dot {
-  position: absolute;
-  width: 44px;
-  height: 44px;
-  background: #ff2b2b;
-  color: white;
-  font-size: 20px;
-  font-weight: bold;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 0 12px rgba(255,0,0,0.9);
-  pointer-events: none;
-}
-
-/* CONTROLS */
-.controls {
-  position: fixed;
-  right: 10px;
-  bottom: 10px;
-  z-index: 10;
-}
-.controls button {
-  padding: 6px 12px;
-  margin: 3px;
-  background: #102a5c;
-  color: #fff;
-  border: 1px solid #294a8a;
-  border-radius: 4px;
+.controls button{
+  margin:3px;
+  padding:6px 12px;
+  background:transparent;
+  border:1px solid #0ff;
+  color:#9befff;
+  cursor:pointer;
 }
 </style>
 </head>
@@ -129,17 +144,17 @@ body {
 <body>
 
 <div class="header">
-  <img src="mythic_header.png">
+  <div class="mystic-text">✦ MYSTIC RESERVATION SYSTEM ✦ TRON PROTOCOL ACTIVE ✦</div>
 </div>
 
 <div class="topbar" id="statusBar">
-  Current Queue: <span id="currentQueue">1</span> — Click a spot on the map
+  Current Queue: <span id="currentQueue">1</span>
 </div>
 
 <div class="container">
   <div class="left" id="memberList"></div>
 
-  <div class="map-area" id="mapArea">
+  <div class="map-area">
     <div class="map-wrapper" id="mapWrapper">
       <img id="map" src="map.jpg">
       <div id="dots"></div>
@@ -150,129 +165,139 @@ body {
 <div class="controls">
   <button onclick="zoomIn()">+</button>
   <button onclick="zoomOut()">−</button>
-  <button onclick="resetZoom()">Reset</button>
-  <hr>
+  <button onclick="resetZoom()">Reset</button><br>
   <button onclick="adminUndo()">Undo</button>
   <button onclick="adminReset()">Reset</button>
 </div>
 
-<script>
-const memberNames = [
-"LGoHo","GinTonic","Cabernet","SLANE","TheDalmore","Wulinagye",
-"AmericanoNoSweet","Asahi","GoldLabel","MadamREDRUM","21stHIBIKI",
-"Highball","BlueLaBel","HalesBlueBoy","เสือฝ้าย",
-"CaramelMacchiato","17thHIBIKI"
-];
+<!-- ===== FIREBASE ===== -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-let state = JSON.parse(localStorage.getItem("mapState")) || {
-  queue: 1,
-  booked: {},
-  history: [],
-  scale: 1
+/* 🔴 ใส่ค่าของคุณตรงนี้ */
+const firebaseConfig = {
+  apiKey: "AIzaSyBaVE7ARMQVlX7j9G-X67F46148I0ucBZo",
+  authDomain: "mystic-8e71f.firebaseapp.com",
+  databaseURL: "https://mystic-8e71f-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "mystic-8e71f",
 };
 
-let { queue, booked, history, scale } = state;
-let locked = false;
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const stateRef = ref(db, "mysticState");
 
-const memberList = document.getElementById("memberList");
-const map = document.getElementById("map");
-const mapWrapper = document.getElementById("mapWrapper");
-const dots = document.getElementById("dots");
-const statusBar = document.getElementById("statusBar");
+/* ===== DATA ===== */
+const names=[
+"LGoHo","GinTonic","Cabernet","SLANE","TheDalmore","Wulinagye",
+"AmericanoNoSweet","Asahi","GoldLabel","MadamREDRUM","21stHIBIKI",
+"Highball","BlueLaBel","HalesBlueBoy","เสือฝ้าย","CaramelMacchiato","17thHIBIKI"
+];
+const trophy=["🥇","🥈","🥉"];
 
-/* MEMBERS */
-const members = [];
-memberNames.forEach((name,i)=>{
-  const trophy = i===0?"🥇":i===1?"🥈":i===2?"🥉":"";
-  const div=document.createElement("div");
-  div.className="member";
-  div.textContent=`${i+1}. ${trophy} ${name}`;
-  memberList.appendChild(div);
-  members.push(div);
+let queue=1,locked=false,scale=1;
+let booked=[];
+
+const members=[],dots=document.getElementById("dots");
+const list=document.getElementById("memberList");
+
+/* ===== INIT LIST ===== */
+names.forEach((n,i)=>{
+  const d=document.createElement("div");
+  d.className="member";
+  d.textContent=`${i+1}. ${i<3?trophy[i]:""} ${n}`;
+  list.appendChild(d);
+  members.push(d);
 });
 
-/* RESTORE DOTS */
-Object.keys(booked).forEach(k=>{
-  const [x,y]=k.split("_").map(Number);
-  drawDot(x,y,booked[k]);
-});
+/* ===== RENDER ===== */
+function render(){
+  dots.innerHTML="";
+  members.forEach(m=>m.classList.remove("active","reserved"));
 
-/* HIGHLIGHT */
-function updateHighlight(){
-  members.forEach(m=>m.classList.remove("active"));
-  if(members[queue-1]) members[queue-1].classList.add("active");
+  booked.forEach(p=>{
+    drawDot(p.x,p.y,p.q);
+    members[p.q-1].classList.add("reserved");
+    members[p.q-1].textContent=`${p.q}. ${names[p.q-1]} — RESERVED`;
+  });
+
+  if(!locked && members[queue-1]){
+    members[queue-1].classList.add("active");
+  }
+
+  document.getElementById("currentQueue").textContent=queue;
+  document.getElementById("statusBar").textContent=
+    locked?"ALL RESERVED — LOCKED":`Current Queue: ${queue}`;
 }
-updateHighlight();
 
-/* MAP CLICK */
-mapWrapper.addEventListener("click",e=>{
-  if(e.target!==map) return;
+/* ===== REALTIME LISTENER ===== */
+onValue(stateRef,snap=>{
+  const s=snap.val();
+  if(!s)return;
+  queue=s.queue;
+  locked=s.locked;
+  booked=s.booked||[];
+  render();
+});
+
+/* ===== MAP CLICK ===== */
+mapWrapper.onclick=e=>{
+  if(locked||e.target.id!=="map")return;
+
+  if(!confirm("Confirm reservation?"))return;
+
   const r=map.getBoundingClientRect();
   const x=Math.floor((e.clientX-r.left)/scale);
   const y=Math.floor((e.clientY-r.top)/scale);
-  const key=`${x}_${y}`;
-  if(booked[key]) return alert("Already reserved");
-  if(!confirm("Confirm this selection?")) return;
 
-  booked[key]=queue;
-  history.push({key});
-  drawDot(x,y,queue);
+  if(booked.some(p=>Math.hypot(p.x-x,p.y-y)<50)){
+    alert("Spot already taken");
+    return;
+  }
 
-  members[queue-1].classList.add("reserved");
-  members[queue-1].textContent+=" - Reserved";
+  booked.push({x,y,q:queue});
 
-  if(queue===memberNames.length){
+  if(queue===names.length){
     locked=true;
-    statusBar.innerHTML="All queues completed — LOCKED";
-  } else {
+  }else{
     queue++;
-    document.getElementById("currentQueue").innerText=queue;
-    updateHighlight();
   }
   save();
-});
+};
 
-/* DOT */
-function drawDot(x,y,n){
+/* ===== SAVE ===== */
+function save(){
+  set(stateRef,{queue,locked,booked});
+}
+
+/* ===== DRAW DOT ===== */
+function drawDot(x,y,q){
   const d=document.createElement("div");
   d.className="dot";
-  d.textContent=n;
-  d.style.left=(x-22)+"px";
-  d.style.top=(y-22)+"px";
+  d.textContent=q;
+  d.style.left=(x-24)+"px";
+  d.style.top=(y-24)+"px";
   dots.appendChild(d);
 }
 
-/* ZOOM */
-function applyZoom(){mapWrapper.style.transform=`scale(${scale})`;save();}
-function zoomIn(){scale=Math.min(3,scale+0.1);applyZoom();}
-function zoomOut(){scale=Math.max(0.5,scale-0.1);applyZoom();}
-function resetZoom(){scale=1;applyZoom();}
-applyZoom();
+/* ===== ZOOM ===== */
+function applyZoom(){mapWrapper.style.transform=`scale(${scale})`}
+window.zoomIn=()=>{scale=Math.min(scale+.1,3);applyZoom()}
+window.zoomOut=()=>{scale=Math.max(scale-.1,.5);applyZoom()}
+window.resetZoom=()=>{scale=1;applyZoom()}
 
-/* SAVE */
-function save(){
-  localStorage.setItem("mapState",JSON.stringify({queue,booked,history,scale}));
-}
-
-/* ADMIN */
-function adminUndo(){
+/* ===== ADMIN ===== */
+window.adminUndo=()=>{
   if(prompt("Password")!=="7890")return;
-  const last=history.pop();
-  if(!last)return;
-  delete booked[last.key];
-  dots.lastChild.remove();
-  queue--;
-  members[queue-1].classList.remove("reserved");
-  members[queue-1].textContent=`${queue}. ${memberNames[queue-1]}`;
+  if(!booked.length)return;
+  booked.pop();
+  queue=Math.max(queue-1,1);
   locked=false;
-  updateHighlight();
   save();
 }
-
-function adminReset(){
+window.adminReset=()=>{
   if(prompt("Password")!=="7890")return;
-  localStorage.removeItem("mapState");
-  location.reload();
+  set(stateRef,{queue:1,locked:false,booked:[]});
 }
 </script>
 
