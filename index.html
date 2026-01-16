@@ -233,23 +233,38 @@ onValue(stateRef,snap=>{
   render();
 });
 
-mapWrapper.onclick=e=>{
-  if(locked||e.target.id!=="map")return;
-  if(!confirm("Confirm reservation?"))return;
+mapWrapper.onclick = e => {
 
-  const r=map.getBoundingClientRect();
-  const x=Math.floor((e.clientX-r.left)/scale);
-  const y=Math.floor((e.clientY-r.top)/scale);
+  if (locked) {
+    alert("All spots have already been reserved. Reservation is closed.");
+    return;
+  }
 
-  if(booked.some(p=>Math.hypot(p.x-x,p.y-y)<28)){
+  if (e.target.id !== "map") return;
+
+  if (!confirm("Confirm reservation?")) return;
+
+  const r = map.getBoundingClientRect();
+  const x = Math.floor((e.clientX - r.left) / scale);
+  const y = Math.floor((e.clientY - r.top) / scale);
+
+  if (booked.some(p => Math.hypot(p.x - x, p.y - y) < 28)) {
     alert("Spot already taken, please select another point.");
     return;
   }
 
-  booked.push({x,y,q:queue});
-  queue===names.length ? locked=true : queue++;
+  booked.push({ x, y, q: queue });
+
+  if (queue === names.length) {
+    locked = true;
+    alert("This was the final reservation. Booking is now closed.");
+  } else {
+    queue++;
+  }
+
   save();
 };
+
 
 function save(){
   set(stateRef,{queue,locked,booked});
@@ -288,3 +303,4 @@ window.adminReset=()=>{
 
 </body>
 </html>
+
