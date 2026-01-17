@@ -42,14 +42,26 @@ body{
   padding:8px 10px;
   background:linear-gradient(90deg,#021b3a,#033b66,#021b3a);
   border-bottom:1px solid #0ff;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
 }
+.topbar button{
+  font-family:'Orbitron',sans-serif;
+  background:transparent;
+  border:1px solid #0ff;
+  color:#9befff;
+  padding:4px 8px;
+  cursor:pointer;
+  margin-left:6px;
+}
+
 .hint-bar{
   text-align:center;
   padding:6px;
   font-size:13px;
   background:rgba(0,255,255,.08);
   border-bottom:1px dashed rgba(0,255,255,.4);
-  text-shadow:0 0 8px #0ff;
 }
 
 /* ===== LAYOUT ===== */
@@ -80,16 +92,8 @@ body{
 }
 
 /* ===== MAP ===== */
-.map-area{
-  flex:1;
-  overflow:auto;
-  background:
-    linear-gradient(rgba(0,255,255,.15) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0,255,255,.15) 1px, transparent 1px),
-    #000;
-  background-size:40px 40px;
-}
-.map-wrapper{position:relative;transform-origin:top left;}
+.map-area{flex:1;overflow:auto;background:#000}
+.map-wrapper{position:relative}
 .map-wrapper img{display:block}
 
 /* ===== DOT ===== */
@@ -103,20 +107,8 @@ body{
   display:flex;
   align-items:center;
   justify-content:center;
-  box-shadow:0 0 10px #0ff,inset 0 0 6px #fff;
+  box-shadow:0 0 10px #0ff;
   pointer-events:none;
-}
-.dot::after{
-  content:'';
-  position:absolute;
-  width:40px;height:40px;
-  border:2px solid #0ff;
-  border-radius:50%;
-  animation:ring 1.5s infinite;
-}
-@keyframes ring{
-  from{transform:scale(.6);opacity:1}
-  to{transform:scale(1.2);opacity:0}
 }
 
 /* ===== POPUP ===== */
@@ -135,31 +127,28 @@ body{
   padding:22px;
   background:radial-gradient(circle at top,#033b66,#010a18);
   border:2px solid #0ff;
-  box-shadow:0 0 25px #0ff,0 0 60px rgba(0,255,255,.6);
+  box-shadow:0 0 25px #0ff;
   text-align:center;
 }
-.popup-title{
-  font-size:18px;
-  margin-bottom:12px;
-  text-shadow:0 0 12px #0ff;
-}
-.popup-text{
-  font-size:14px;
-  margin-bottom:18px;
+.popup-title{font-size:18px;margin-bottom:10px}
+.popup-text{font-size:14px;margin-bottom:15px}
+.popup-box input{
+  width:100%;
+  padding:6px;
+  background:#000;
+  border:1px solid #0ff;
+  color:#0ff;
+  text-align:center;
 }
 .popup-actions button{
+  margin-top:10px;
   width:100%;
-  padding:8px;
+  padding:6px;
   font-family:'Orbitron',sans-serif;
   background:transparent;
   border:1px solid #0ff;
   color:#9befff;
   cursor:pointer;
-}
-
-/* ===== MOBILE ===== */
-@media(max-width:768px){
-  .member{font-size:10px;padding:5px 6px}
 }
 </style>
 </head>
@@ -169,7 +158,15 @@ body{
 <div class="header">
   <div class="mystic-text">✦ MYSTIC Farm Spot Reservation ✦</div>
 </div>
-<div class="topbar" id="statusBar"></div>
+
+<div class="topbar">
+  <div id="statusBar"></div>
+  <div>
+    <button onclick="askCode('undo')">UNDO</button>
+    <button onclick="askCode('reset')">RESET</button>
+  </div>
+</div>
+
 <div class="hint-bar">✦ Click on the map to reserve your spot ✦</div>
 
 <div class="container">
@@ -187,8 +184,10 @@ body{
   <div class="popup-box">
     <div class="popup-title" id="popupTitle"></div>
     <div class="popup-text" id="popupText"></div>
+    <input id="popupInput" type="password" placeholder="Enter Code">
     <div class="popup-actions">
-      <button onclick="closePopup()">OK</button>
+      <button onclick="confirmPopup()">CONFIRM</button>
+      <button onclick="closePopup()">CANCEL</button>
     </div>
   </div>
 </div>
@@ -205,14 +204,14 @@ const app=initializeApp({
 const db=getDatabase(app);
 const stateRef=ref(db,"mysticState");
 
-const names=[
-"LGoHo","GinTonic","Cabernet","SLANE","TheDalmore","Wulinagye",
-"AmericanoNoSweet","Asahi","GoldLabel","MadamREDRUM","21stHIBIKI",
-"Highball","BlueLaBel","HalesBlueBoy","เสือฝ้าย","CaramelMacchiato",
-"17thHIBIKI","B52","GREENLABEL","IRONBALLS"
-];
+const names=[ "LGoHo","GinTonic","Cabernet","SLANE","TheDalmore","Wulinagye",
+"AmericanoNoSweet","Asahi","GoldLabel","MadamREDRUM","21stHIBIKI","Highball",
+"BlueLaBel","HalesBlueBoy","เสือฝ้าย","CaramelMacchiato","17thHIBIKI","B52",
+"GREENLABEL","IRONBALLS" ];
 
-let queue=1,locked=false,scale=1,booked=[];
+let queue=1,locked=false,booked=[];
+let action=null;
+
 const members=[],dots=document.getElementById("dots");
 
 names.forEach((n,i)=>{
@@ -223,12 +222,38 @@ names.forEach((n,i)=>{
   members.push(d);
 });
 
-function showPopup(title,text){
-  popupTitle.textContent=title;
-  popupText.innerHTML=text;
+function showPopup(t,txt,needInput=true){
+  popupTitle.textContent=t;
+  popupText.innerHTML=txt;
+  popupInput.style.display=needInput?"block":"none";
+  popupInput.value="";
   popupOverlay.classList.remove("hidden");
 }
 window.closePopup=()=>popupOverlay.classList.add("hidden");
+
+window.askCode=(type)=>{
+  action=type;
+  showPopup(type==="undo"?"UNDO":"RESET","Enter admin code (7890)");
+};
+
+window.confirmPopup=()=>{
+  if(popupInput.value!=="7890"){
+    showPopup("ACCESS DENIED","Invalid code",false);
+    return;
+  }
+  if(action==="undo" && booked.length){
+    booked.pop();
+    queue=Math.max(1,queue-1);
+    locked=false;
+  }
+  if(action==="reset"){
+    booked=[];
+    queue=1;
+    locked=false;
+  }
+  set(stateRef,{queue,locked,booked});
+  closePopup();
+};
 
 function render(){
   dots.innerHTML="";
@@ -240,13 +265,13 @@ function render(){
     const d=document.createElement("div");
     d.className="dot";
     d.textContent=p.q;
-    d.style.left=(p.x-14)+"px";
-    d.style.top=(p.y-14)+"px";
+    d.style.left=p.x-14+"px";
+    d.style.top=p.y-14+"px";
     dots.appendChild(d);
     members[p.q-1].classList.add("reserved");
   });
   if(!locked) members[queue-1]?.classList.add("active");
-  statusBar.textContent=locked?"SYSTEM LOCKED — ALL RESERVED":"Current Queue: "+queue;
+  statusBar.textContent=locked?"SYSTEM LOCKED":"Current Queue: "+queue;
 }
 
 onValue(stateRef,s=>{
@@ -256,33 +281,22 @@ onValue(stateRef,s=>{
 
 mapWrapper.onclick=e=>{
   if(e.target.id!=="map")return;
-
   if(locked){
-    showPopup("SYSTEM LOCKED","All reservation slots have been completed.<br>No further reservations are allowed.");
-    return;
+    showPopup("SYSTEM LOCKED","All slots reserved",false);return;
   }
-
   const r=map.getBoundingClientRect();
-  const x=Math.floor((e.clientX-r.left)/scale);
-  const y=Math.floor((e.clientY-r.top)/scale);
-
+  const x=e.clientX-r.left;
+  const y=e.clientY-r.top;
   if(booked.some(p=>Math.hypot(p.x-x,p.y-y)<28)){
-    showPopup("INVALID SPOT","This spot has already been reserved.<br>Please select another location.");
-    return;
+    showPopup("INVALID SPOT","This spot is already reserved",false);return;
   }
-
   booked.push({x,y,q:queue});
-
   if(queue===names.length){
     locked=true;
-    showPopup("RESERVATION COMPLETE","The final reservation has been completed.<br>The system is now locked.");
-  }else{
-    queue++;
-  }
-
+    showPopup("COMPLETE","Final reservation done",false);
+  }else queue++;
   set(stateRef,{queue,locked,booked});
 };
 </script>
-
 </body>
 </html>
