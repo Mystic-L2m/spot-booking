@@ -151,6 +151,7 @@ body{
 /* ===== MOBILE ===== */
 @media(max-width:768px){
   .mobile-toggle{display:block}
+
   .left{
     position:absolute;
     left:0;
@@ -162,7 +163,15 @@ body{
     transition:.3s;
   }
   .left.hide{transform:translateX(-100%)}
+
+  /* 🔽 ลดขนาดแถวรายชื่อ */
+  .member{
+    padding:6px 8px;        /* จาก 10px → เล็กลง */
+    font-size:12px;         /* ลดขนาดตัวอักษร */
+    line-height:1.2;        /* แถวชิดขึ้น */
+  }
 }
+
 </style>
 </head>
 
@@ -315,5 +324,6 @@ window.adminReset=()=>{
 
 </body>
 </html>
+
 
 
