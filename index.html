@@ -44,6 +44,24 @@ body{
   border-bottom:1px solid #0ff;
 }
 
+/* ===== HINT ===== */
+.hint-bar{
+  text-align:center;
+  padding:6px 10px;
+  font-size:13px;
+  letter-spacing:1px;
+  background:rgba(0,255,255,0.08);
+  border-bottom:1px dashed rgba(0,255,255,0.4);
+  color:#9befff;
+  text-shadow:0 0 8px #0ff;
+  animation:hintGlow 2s infinite;
+}
+@keyframes hintGlow{
+  0%{opacity:.6}
+  50%{opacity:1}
+  100%{opacity:.6}
+}
+
 /* ===== MOBILE TOGGLE ===== */
 .mobile-toggle{
   display:none;
@@ -64,7 +82,7 @@ body{
 /* ===== MAIN ===== */
 .container{
   display:flex;
-  height:calc(100vh - 150px);
+  height:calc(100vh - 190px);
 }
 
 /* ===== LEFT ===== */
@@ -75,8 +93,9 @@ body{
   overflow-y:auto;
 }
 .member{
-  padding:10px;
+  padding:8px 10px;
   border-bottom:1px solid rgba(0,255,255,.2);
+  font-size:14px;
 }
 .member.active{
   background:rgba(0,255,255,.25);
@@ -154,14 +173,15 @@ body{
   .left{
     position:absolute;
     left:0;
-    top:150px;
-    height:calc(100vh - 150px);
-    width:65vw;
-    max-width:260px;
+    top:190px;
+    height:calc(100vh - 190px);
+    width:60vw;
+    max-width:230px;
     z-index:20;
     transition:.3s;
   }
   .left.hide{transform:translateX(-100%)}
+  .member{font-size:13px;padding:7px 8px}
 }
 </style>
 </head>
@@ -174,12 +194,15 @@ body{
 
 <div class="topbar" id="statusBar">Current Queue: 1</div>
 
+<div class="hint-bar">
+  ✦ Click on the map to reserve your spot ✦
+</div>
+
 <div class="mobile-toggle">
   <button onclick="toggleList()">☰ Members</button>
 </div>
 
 <div class="container">
-  <!-- ✅ แก้ตรงนี้: ไม่มี class hide -->
   <div class="left" id="memberList"></div>
 
   <div class="map-area">
@@ -275,16 +298,13 @@ mapWrapper.onclick=e=>{
   }
 
   booked.push({x,y,q:queue});
-
   if(queue===names.length){
     locked=true;
-    alert("🎉 Final reservation completed — The system is closed");
+    alert("🎉 Final reservation completed. System locked.");
   }else queue++;
 
-  save();
+  set(stateRef,{queue,locked,booked});
 };
-
-function save(){set(stateRef,{queue,locked,booked});}
 
 function drawDot(x,y,q){
   const d=document.createElement("div");
@@ -302,7 +322,7 @@ window.resetZoom=()=>{scale=1;mapWrapper.style.transform="scale(1)"}
 
 /* ===== MOBILE TOGGLE ===== */
 window.toggleList=()=>{
-  document.getElementById("memberList").classList.toggle("hide");
+  document.querySelector(".left").classList.toggle("hide");
 }
 
 /* ===== ADMIN ===== */
@@ -310,7 +330,7 @@ window.adminUndo=()=>{
   if(prompt("Password")!=="7890")return;
   if(!booked.length)return;
   booked.pop(); queue=Math.max(queue-1,1); locked=false;
-  save();
+  set(stateRef,{queue,locked,booked});
 }
 window.adminReset=()=>{
   if(prompt("Password")!=="7890")return;
