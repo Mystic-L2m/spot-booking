@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Mystic Map Reservation</title>
+<title>Mystic Map Reservation (Realtime)</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
@@ -20,17 +20,18 @@ body{
 .header{
   height:110px;
   border-bottom:2px solid #0ff;
-  position:relative;
   overflow:hidden;
+  position:relative;
 }
 .mystic-text{
   position:absolute;
   top:50%;
-  font-size:42px;
   white-space:nowrap;
+  font-size:42px;
+  color:#9befff;
+  text-shadow:0 0 15px #0ff,0 0 40px #0ff;
   transform:translateY(-50%);
   animation:moveText 15s linear infinite;
-  text-shadow:0 0 15px #0ff,0 0 40px #0ff;
 }
 @keyframes moveText{
   from{left:-100%}
@@ -39,26 +40,9 @@ body{
 
 /* ===== TOP BAR ===== */
 .topbar{
-  padding:8px 10px;
+  padding:10px;
   background:linear-gradient(90deg,#021b3a,#033b66,#021b3a);
   border-bottom:1px solid #0ff;
-}
-
-/* ===== MOBILE TOGGLE ===== */
-.mobile-toggle{
-  display:none;
-  padding:6px;
-  background:#021b3a;
-  border-bottom:1px solid #0ff;
-  text-align:right;
-}
-.mobile-toggle button{
-  background:transparent;
-  border:1px solid #0ff;
-  color:#9befff;
-  padding:5px 10px;
-  font-size:13px;
-  cursor:pointer;
 }
 
 /* ===== MAIN ===== */
@@ -69,7 +53,7 @@ body{
 
 /* ===== LEFT ===== */
 .left{
-  width:280px;
+  width:300px;
   background:#021b3a;
   border-right:1px solid #0ff;
   overflow-y:auto;
@@ -80,10 +64,12 @@ body{
 }
 .member.active{
   background:rgba(0,255,255,.25);
-  animation:glow 1.2s infinite;
+  animation:glowWave 1.2s infinite;
 }
-.member.reserved{opacity:.55}
-@keyframes glow{
+.member.reserved{
+  opacity:.55;
+}
+@keyframes glowWave{
   0%{box-shadow:0 0 5px #0ff}
   50%{box-shadow:0 0 25px #0ff}
   100%{box-shadow:0 0 5px #0ff}
@@ -103,17 +89,21 @@ body{
   position:relative;
   transform-origin:top left;
 }
-.map-wrapper img{display:block;user-select:none}
+.map-wrapper img{
+  display:block;
+  user-select:none;
+}
 
 /* ===== DOT ===== */
 .dot{
   position:absolute;
-  width:27px;height:27px;
+  width:27px;
+  height:27px;
   border-radius:50%;
-  background:#0ff;
+  background:#00ffff;
+  color:#002;
   font-size:12px;
   font-weight:bold;
-  color:#002;
   display:flex;
   align-items:center;
   justify-content:center;
@@ -123,7 +113,8 @@ body{
 .dot::after{
   content:'';
   position:absolute;
-  width:39px;height:39px;
+  width:39px;
+  height:39px;
   border:2px solid #0ff;
   border-radius:50%;
   animation:ring 1.5s infinite;
@@ -148,20 +139,23 @@ body{
   cursor:pointer;
 }
 
-/* ===== MOBILE ===== */
-@media(max-width:768px){
-  .mobile-toggle{display:block}
+/* ===== MOBILE FIX ===== */
+@media (max-width:768px){
   .left{
-    position:absolute;
-    left:0;
-    top:150px;
-    height:calc(100vh - 150px);
-    width:65vw;
-    max-width:260px;
-    z-index:20;
-    transition:.3s;
+    width:38vw;
+    min-width:130px;
+    max-width:170px;
+    font-size:13px;
   }
-  .left.hide{transform:translateX(-100%)}
+  .member{
+    padding:7px 6px;
+  }
+  .mystic-text{
+    font-size:26px;
+  }
+  .topbar{
+    font-size:14px;
+  }
 }
 </style>
 </head>
@@ -173,10 +167,6 @@ body{
 </div>
 
 <div class="topbar" id="statusBar">Current Queue: 1</div>
-
-<div class="mobile-toggle">
-  <button onclick="toggleList()">☰ Members</button>
-</div>
 
 <div class="container">
   <div class="left" id="memberList"></div>
@@ -201,15 +191,14 @@ body{
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-const firebaseConfig={
-  apiKey:"AIzaSyBaVE7ARMQVlX7j9G-X67F46148I0ucBZo",
-  databaseURL:"https://mystic-8e71f-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId:"mystic-8e71f"
+const firebaseConfig = {
+  apiKey: "AIzaSyBaVE7ARMQVlX7j9G-X67F46148I0ucBZo",
+  databaseURL: "https://mystic-8e71f-default-rtdb.asia-southeast1.firebasedatabase.app"
 };
 
-const app=initializeApp(firebaseConfig);
-const db=getDatabase(app);
-const stateRef=ref(db,"mysticState");
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const stateRef = ref(db,"mysticState");
 
 const names=[
 "LGoHo","GinTonic","Cabernet","SLANE","TheDalmore","Wulinagye",
@@ -217,7 +206,8 @@ const names=[
 "Highball","BlueLaBel","HalesBlueBoy","เสือฝ้าย","CaramelMacchiato","17thHIBIKI"
 ];
 
-let queue=1,locked=false,scale=1,booked=[];
+let queue=1,locked=false,scale=1;
+let booked=[];
 const members=[],dots=document.getElementById("dots");
 const list=document.getElementById("memberList");
 
@@ -232,31 +222,24 @@ names.forEach((n,i)=>{
 function render(){
   dots.innerHTML="";
   members.forEach(m=>m.classList.remove("active","reserved"));
-
   booked.forEach(p=>{
     drawDot(p.x,p.y,p.q);
     members[p.q-1].classList.add("reserved");
     members[p.q-1].textContent=`${p.q}. ${names[p.q-1]} — RESERVED`;
   });
-
-  if(!locked && members[queue-1]){
-    members[queue-1].classList.add("active");
-  }
-
-  statusBar.textContent=locked
-    ?"ALL RESERVED — LOCKED"
-    :`Current Queue: ${queue}`;
+  if(!locked && members[queue-1]) members[queue-1].classList.add("active");
+  document.getElementById("statusBar").textContent=
+    locked?"ALL RESERVED — LOCKED":`Current Queue: ${queue}`;
 }
 
 onValue(stateRef,s=>{
-  const v=s.val();
-  if(!v)return;
-  queue=v.queue; locked=v.locked; booked=v.booked||[];
+  if(!s.val())return;
+  ({queue,locked,booked}=s.val());
   render();
 });
 
 mapWrapper.onclick=e=>{
-  if(locked){alert("❌ ไม่สามารถจองได้อีกแล้ว");return;}
+  if(locked){alert("Reservation closed");return;}
   if(e.target.id!=="map")return;
   if(!confirm("Confirm reservation?"))return;
 
@@ -265,21 +248,14 @@ mapWrapper.onclick=e=>{
   const y=Math.floor((e.clientY-r.top)/scale);
 
   if(booked.some(p=>Math.hypot(p.x-x,p.y-y)<28)){
-    alert("จุดนี้ถูกจองแล้ว");
+    alert("Spot already taken");
     return;
   }
 
   booked.push({x,y,q:queue});
-
-  if(queue===names.length){
-    locked=true;
-    alert("🎉 คิวสุดท้ายถูกจองแล้ว ระบบถูกปิด");
-  }else queue++;
-
-  save();
+  queue===names.length?(locked=true,alert("Final reservation completed")):queue++;
+  set(stateRef,{queue,locked,booked});
 };
-
-function save(){set(stateRef,{queue,locked,booked});}
 
 function drawDot(x,y,q){
   const d=document.createElement("div");
@@ -290,22 +266,14 @@ function drawDot(x,y,q){
   dots.appendChild(d);
 }
 
-/* ===== ZOOM ===== */
 window.zoomIn=()=>{scale=Math.min(scale+.1,3);mapWrapper.style.transform=`scale(${scale})`}
 window.zoomOut=()=>{scale=Math.max(scale-.1,.5);mapWrapper.style.transform=`scale(${scale})`}
 window.resetZoom=()=>{scale=1;mapWrapper.style.transform="scale(1)"}
 
-/* ===== MOBILE TOGGLE ===== */
-window.toggleList=()=>{
-  document.querySelector(".left").classList.toggle("hide");
-}
-
-/* ===== ADMIN ===== */
 window.adminUndo=()=>{
   if(prompt("Password")!=="7890")return;
-  if(!booked.length)return;
-  booked.pop(); queue=Math.max(queue-1,1); locked=false;
-  save();
+  booked.pop();queue=Math.max(queue-1,1);locked=false;
+  set(stateRef,{queue,locked,booked});
 }
 window.adminReset=()=>{
   if(prompt("Password")!=="7890")return;
