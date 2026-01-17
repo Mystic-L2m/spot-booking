@@ -167,22 +167,33 @@ body{
   cursor:pointer;
 }
 
+
 /* ===== MOBILE ===== */
 @media(max-width:768px){
   .mobile-toggle{display:block}
+
   .left{
     position:absolute;
     left:0;
     top:190px;
     height:calc(100vh - 190px);
-    width:60vw;
-    max-width:230px;
+    width:45vw;          /* ลดจาก 60vw */
+    max-width:180px;     /* ลดจาก 230px */
     z-index:20;
     transition:.3s;
   }
-  .left.hide{transform:translateX(-100%)}
-  .member{font-size:13px;padding:7px 8px}
+
+  .left.hide{
+    transform:translateX(-100%);
+  }
+
+  .member{
+    font-size:10px;      /* ลด ~30% จาก 14px */
+    padding:5px 6px;     /* ลด padding */
+    line-height:1.2;
+  }
 }
+
 </style>
 </head>
 
@@ -340,3 +351,4 @@ window.adminReset=()=>{
 
 </body>
 </html>
+
