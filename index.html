@@ -297,7 +297,8 @@ onValue(stateRef,s=>{
 mapWrapper.onclick=e=>{
   if(locked){alert("❌ Reservation closed");return;}
   if(e.target.id!=="map")return;
-  if(!confirm("Confirm reservation?"))return;
+  const currentName = names[queue - 1];
+  if (!confirm(`Do you want to reserve this spot, ${currentName}?`)) return;
 
   const r=map.getBoundingClientRect();
   const x=Math.floor((e.clientX-r.left)/scale);
@@ -351,4 +352,5 @@ window.adminReset=()=>{
 
 </body>
 </html>
+
 
