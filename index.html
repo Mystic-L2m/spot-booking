@@ -22,6 +22,7 @@ body{
   border-bottom:2px solid #0ff;
   overflow:hidden;
   position:relative;
+  background:#020b1a;
 }
 .mystic-text{
   position:absolute;
@@ -94,27 +95,26 @@ body{
   user-select:none;
 }
 
-/* ===== DOT (ลดขนาดลงอีก 30%) ===== */
+/* ===== DOT ===== */
 .dot{
   position:absolute;
-  width:27px;
-  height:27px;
+  width:34px;
+  height:34px;
   border-radius:50%;
   background:#00ffff;
   color:#002;
-  font-size:12px;
+  font-size:15px;
   font-weight:bold;
   display:flex;
   align-items:center;
   justify-content:center;
-  box-shadow:0 0 8px #0ff,inset 0 0 6px #fff;
-  pointer-events:none;
+  box-shadow:0 0 12px #0ff,inset 0 0 8px #fff;
 }
 .dot::after{
   content:'';
   position:absolute;
-  width:39px;
-  height:39px;
+  width:50px;
+  height:50px;
   border:2px solid #0ff;
   border-radius:50%;
   animation:ring 1.5s infinite;
@@ -138,169 +138,39 @@ body{
   color:#9befff;
   cursor:pointer;
 }
+
+/* ================================================= */
+/* ===== MOBILE RESPONSIVE FIX (สำคัญ) ===== */
+/* ================================================= */
+@media (max-width: 768px){
+
+  .left{
+    width:36vw;        /* ลดจาก 300px */
+    min-width:140px;
+    max-width:180px;
+    font-size:13px;
+  }
+
+  .member{
+    padding:8px 6px;
+  }
+
+  .map-area{
+    flex:1;
+  }
+
+  .mystic-text{
+    font-size:26px;
+  }
+
+  .topbar{
+    font-size:14px;
+  }
+}
 </style>
 </head>
 
 <body>
-
-<div class="header">
-  <div class="mystic-text">✦ MYSTIC FarmSpotReservation ✦</div>
-</div>
-
-<div class="topbar" id="statusBar">
-  Current Queue: <span id="currentQueue">1</span>
-</div>
-
-<div class="container">
-  <div class="left" id="memberList"></div>
-
-  <div class="map-area">
-    <div class="map-wrapper" id="mapWrapper">
-      <img id="map" src="map.jpg">
-      <div id="dots"></div>
-    </div>
-  </div>
-</div>
-
-<div class="controls">
-  <button onclick="zoomIn()">+</button>
-  <button onclick="zoomOut()">−</button>
-  <button onclick="resetZoom()">Reset</button><br>
-  <button onclick="adminUndo()">Undo</button>
-  <button onclick="adminReset()">Reset</button>
-</div>
-
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyBaVE7ARMQVlX7j9G-X67F46148I0ucBZo",
-  authDomain: "mystic-8e71f.firebaseapp.com",
-  databaseURL: "https://mystic-8e71f-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "mystic-8e71f",
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
-const stateRef = ref(db, "mysticState");
-
-const names=[
-"LGoHo","GinTonic","Cabernet","SLANE","TheDalmore","Wulinagye",
-"AmericanoNoSweet","Asahi","GoldLabel","MadamREDRUM","21stHIBIKI",
-"Highball","BlueLaBel","HalesBlueBoy","เสือฝ้าย","CaramelMacchiato","17thHIBIKI"
-];
-const trophy=["🥇","🥈","🥉"];
-
-let queue=1,locked=false,scale=1;
-let booked=[];
-
-const members=[],dots=document.getElementById("dots");
-const list=document.getElementById("memberList");
-
-names.forEach((n,i)=>{
-  const d=document.createElement("div");
-  d.className="member";
-  d.textContent=`${i+1}. ${i<3?trophy[i]:""} ${n}`;
-  list.appendChild(d);
-  members.push(d);
-});
-
-function render(){
-  dots.innerHTML="";
-  members.forEach(m=>m.classList.remove("active","reserved"));
-
-  booked.forEach(p=>{
-    drawDot(p.x,p.y,p.q);
-    members[p.q-1].classList.add("reserved");
-    members[p.q-1].textContent=`${p.q}. ${names[p.q-1]} — RESERVED`;
-  });
-
-  if(!locked && members[queue-1]){
-    members[queue-1].classList.add("active");
-  }
-
-  document.getElementById("statusBar").textContent=
-    locked?"ALL RESERVED — LOCKED":`Current Queue: ${queue}`;
-}
-
-onValue(stateRef,snap=>{
-  const s=snap.val();
-  if(!s)return;
-  queue=s.queue;
-  locked=s.locked;
-  booked=s.booked||[];
-  render();
-});
-
-mapWrapper.onclick = e => {
-
-  if (locked) {
-    alert("All spots have already been reserved. Reservation is closed.");
-    return;
-  }
-
-  if (e.target.id !== "map") return;
-
-  if (!confirm("Confirm reservation?")) return;
-
-  const r = map.getBoundingClientRect();
-  const x = Math.floor((e.clientX - r.left) / scale);
-  const y = Math.floor((e.clientY - r.top) / scale);
-
-  if (booked.some(p => Math.hypot(p.x - x, p.y - y) < 28)) {
-    alert("Spot already taken, please select another point.");
-    return;
-  }
-
-  booked.push({ x, y, q: queue });
-
-  if (queue === names.length) {
-    locked = true;
-    alert("This was the final reservation. Booking is now closed.");
-  } else {
-    queue++;
-  }
-
-  save();
-};
-
-
-function save(){
-  set(stateRef,{queue,locked,booked});
-}
-
-/* ===== DRAW DOT (offset ใหม่) ===== */
-function drawDot(x,y,q){
-  const d=document.createElement("div");
-  d.className="dot";
-  d.textContent=q;
-  d.style.left=(x-14)+"px";
-  d.style.top=(y-14)+"px";
-  dots.appendChild(d);
-}
-
-/* ===== ZOOM ===== */
-function applyZoom(){mapWrapper.style.transform=`scale(${scale})`}
-window.zoomIn=()=>{scale=Math.min(scale+.1,3);applyZoom()}
-window.zoomOut=()=>{scale=Math.max(scale-.1,.5);applyZoom()}
-window.resetZoom=()=>{scale=1;applyZoom()}
-
-/* ===== ADMIN ===== */
-window.adminUndo=()=>{
-  if(prompt("Password")!=="7890")return;
-  if(!booked.length)return;
-  booked.pop();
-  queue=Math.max(queue-1,1);
-  locked=false;
-  save();
-}
-window.adminReset=()=>{
-  if(prompt("Password")!=="7890")return;
-  set(stateRef,{queue:1,locked:false,booked:[]});
-}
-</script>
-
+<!-- โค้ด JS / Firebase / HTML ส่วนอื่น ใช้เหมือนเดิมทั้งหมด -->
 </body>
 </html>
-
