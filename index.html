@@ -1,202 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Mystic Map Reservation</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
-
-<style>
-/* ===== BASE ===== */
-body{
-  margin:0;
-  font-family:'Orbitron',sans-serif;
-  background:#020b1a;
-  color:#9befff;
-  overflow:hidden;
-}
-
-/* ===== HEADER ===== */
-.header{
-  height:110px;
-  border-bottom:2px solid #0ff;
-  position:relative;
-  overflow:hidden;
-}
-.mystic-text{
-  position:absolute;
-  top:50%;
-  font-size:42px;
-  white-space:nowrap;
-  transform:translateY(-50%);
-  animation:moveText 15s linear infinite;
-  text-shadow:0 0 15px #0ff,0 0 40px #0ff;
-}
-@keyframes moveText{
-  from{left:-100%}
-  to{left:100%}
-}
-
-/* ===== TOP ===== */
-.topbar{
-  padding:8px 10px;
-  background:linear-gradient(90deg,#021b3a,#033b66,#021b3a);
-  border-bottom:1px solid #0ff;
-}
-.hint-bar{
-  text-align:center;
-  padding:6px;
-  font-size:13px;
-  background:rgba(0,255,255,.08);
-  border-bottom:1px dashed rgba(0,255,255,.4);
-  text-shadow:0 0 8px #0ff;
-}
-
-/* ===== LAYOUT ===== */
-.container{
-  display:flex;
-  height:calc(100vh - 190px);
-}
-.left{
-  width:280px;
-  background:#021b3a;
-  border-right:1px solid #0ff;
-  overflow-y:auto;
-}
-.member{
-  padding:8px 10px;
-  font-size:14px;
-  border-bottom:1px solid rgba(0,255,255,.2);
-}
-.member.active{
-  background:rgba(0,255,255,.25);
-  animation:glow 1.2s infinite;
-}
-.member.reserved{opacity:.55}
-@keyframes glow{
-  0%{box-shadow:0 0 6px #0ff}
-  50%{box-shadow:0 0 25px #0ff}
-  100%{box-shadow:0 0 6px #0ff}
-}
-
-/* ===== MAP ===== */
-.map-area{
-  flex:1;
-  overflow:auto;
-  background:
-    linear-gradient(rgba(0,255,255,.15) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0,255,255,.15) 1px, transparent 1px),
-    #000;
-  background-size:40px 40px;
-}
-.map-wrapper{position:relative;transform-origin:top left;}
-.map-wrapper img{display:block}
-
-/* ===== DOT ===== */
-.dot{
-  position:absolute;
-  width:27px;height:27px;
-  border-radius:50%;
-  background:#0ff;
-  color:#002;
-  font-size:12px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  box-shadow:0 0 10px #0ff,inset 0 0 6px #fff;
-  pointer-events:none;
-}
-.dot::after{
-  content:'';
-  position:absolute;
-  width:40px;height:40px;
-  border:2px solid #0ff;
-  border-radius:50%;
-  animation:ring 1.5s infinite;
-}
-@keyframes ring{
-  from{transform:scale(.6);opacity:1}
-  to{transform:scale(1.2);opacity:0}
-}
-
-/* ===== POPUP ===== */
-.popup-overlay{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.75);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  z-index:999;
-}
-.popup-overlay.hidden{display:none}
-.popup-box{
-  width:340px;
-  padding:22px;
-  background:radial-gradient(circle at top,#033b66,#010a18);
-  border:2px solid #0ff;
-  box-shadow:0 0 25px #0ff,0 0 60px rgba(0,255,255,.6);
-  text-align:center;
-}
-.popup-title{
-  font-size:18px;
-  margin-bottom:12px;
-  text-shadow:0 0 12px #0ff;
-}
-.popup-text{
-  font-size:14px;
-  margin-bottom:18px;
-}
-.popup-actions button{
-  width:100%;
-  padding:8px;
-  font-family:'Orbitron',sans-serif;
-  background:transparent;
-  border:1px solid #0ff;
-  color:#9befff;
-  cursor:pointer;
-}
-
-/* ===== MOBILE ===== */
-@media(max-width:768px){
-  .member{font-size:10px;padding:5px 6px}
-}
-</style>
-</head>
-
-<body>
-
-<div class="header">
-  <div class="mystic-text">✦ MYSTIC Farm Spot Reservation ✦</div>
-</div>
-<div class="topbar" id="statusBar"></div>
-<div class="hint-bar">✦ Click on the map to reserve your spot ✦</div>
-
-<div class="container">
-  <div class="left" id="memberList"></div>
-  <div class="map-area">
-    <div class="map-wrapper" id="mapWrapper">
-      <img id="map" src="map.jpg">
-      <div id="dots"></div>
-    </div>
-  </div>
-</div>
-
-<!-- POPUP -->
-<div id="popupOverlay" class="popup-overlay hidden">
-  <div class="popup-box">
-    <div class="popup-title" id="popupTitle"></div>
-    <div class="popup-text" id="popupText"></div>
-    <div class="popup-actions">
-      <button onclick="closePopup()">OK</button>
-    </div>
-  </div>
-</div>
-
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
+/* ===== FIREBASE ===== */
 const app=initializeApp({
   apiKey:"AIzaSyBaVE7ARMQVlX7j9G-X67F46148I0ucBZo",
   databaseURL:"https://mystic-8e71f-default-rtdb.asia-southeast1.firebasedatabase.app",
@@ -205,6 +11,7 @@ const app=initializeApp({
 const db=getDatabase(app);
 const stateRef=ref(db,"mysticState");
 
+/* ===== DATA ===== */
 const names=[
 "LGoHo","GinTonic","Cabernet","SLANE","TheDalmore","Wulinagye",
 "AmericanoNoSweet","Asahi","GoldLabel","MadamREDRUM","21stHIBIKI",
@@ -215,6 +22,7 @@ const names=[
 let queue=1,locked=false,scale=1,booked=[];
 const members=[],dots=document.getElementById("dots");
 
+/* ===== MEMBERS ===== */
 names.forEach((n,i)=>{
   const d=document.createElement("div");
   d.className="member";
@@ -223,19 +31,27 @@ names.forEach((n,i)=>{
   members.push(d);
 });
 
-function showPopup(title,text){
+/* ===== POPUP ===== */
+let popupAction=null;
+function showPopup(title,text,action=null){
   popupTitle.textContent=title;
   popupText.innerHTML=text;
   popupOverlay.classList.remove("hidden");
+  popupAction=action;
 }
-window.closePopup=()=>popupOverlay.classList.add("hidden");
+window.closePopup=()=>{
+  popupOverlay.classList.add("hidden");
+  if(popupAction){ popupAction(); popupAction=null; }
+};
 
+/* ===== RENDER ===== */
 function render(){
   dots.innerHTML="";
   members.forEach((m,i)=>{
     m.className="member";
     m.textContent=`${i+1}. ${names[i]}`;
   });
+
   booked.forEach(p=>{
     const d=document.createElement("div");
     d.className="dot";
@@ -245,20 +61,30 @@ function render(){
     dots.appendChild(d);
     members[p.q-1].classList.add("reserved");
   });
+
   if(!locked) members[queue-1]?.classList.add("active");
-  statusBar.textContent=locked?"SYSTEM LOCKED — ALL RESERVED":"Current Queue: "+queue;
+
+  statusBar.textContent = locked
+    ? "SYSTEM LOCKED — ALL RESERVED"
+    : "Current Queue: " + queue;
 }
 
+/* ===== SYNC ===== */
 onValue(stateRef,s=>{
   const v=s.val(); if(!v)return;
-  ({queue,locked,booked}=v); render();
+  queue=v.queue; locked=v.locked; booked=v.booked||[];
+  render();
 });
 
+/* ===== MAP CLICK ===== */
 mapWrapper.onclick=e=>{
   if(e.target.id!=="map")return;
 
   if(locked){
-    showPopup("SYSTEM LOCKED","All reservation slots have been completed.<br>No further reservations are allowed.");
+    showPopup(
+      "SYSTEM LOCKED",
+      "All reservation slots have been completed.<br>No further reservations are allowed."
+    );
     return;
   }
 
@@ -267,22 +93,71 @@ mapWrapper.onclick=e=>{
   const y=Math.floor((e.clientY-r.top)/scale);
 
   if(booked.some(p=>Math.hypot(p.x-x,p.y-y)<28)){
-    showPopup("INVALID SPOT","This spot has already been reserved.<br>Please select another location.");
+    showPopup(
+      "INVALID SPOT",
+      "This spot has already been reserved.<br>Please select another location."
+    );
     return;
   }
 
-  booked.push({x,y,q:queue});
+  const name = names[queue-1];
+  showPopup(
+    "CONFIRM RESERVATION",
+    `Do you want to reserve this spot for <b>${name}</b>?`,
+    ()=>{
+      booked.push({x,y,q:queue});
 
-  if(queue===names.length){
-    locked=true;
-    showPopup("RESERVATION COMPLETE","The final reservation has been completed.<br>The system is now locked.");
-  }else{
-    queue++;
-  }
+      if(queue===names.length){
+        locked=true;
+        showPopup(
+          "RESERVATION COMPLETE",
+          "The final reservation has been completed.<br>The system is now locked."
+        );
+      }else{
+        queue++;
+      }
 
-  set(stateRef,{queue,locked,booked});
+      set(stateRef,{queue,locked,booked});
+    }
+  );
+};
+
+/* ===== ADMIN AUTH ===== */
+function adminAuth(action){
+  showPopup(
+    "ADMIN ACCESS",
+    `Enter admin password:<br><br>
+     <input id="pw" type="password"
+       style="width:90%;padding:6px;background:#000;border:1px solid #0ff;color:#0ff">`,
+    ()=>{
+      const pw=document.getElementById("pw").value;
+      if(pw!=="7890"){
+        showPopup("ACCESS DENIED","Incorrect password.");
+        return;
+      }
+      action();
+    }
+  );
+}
+
+/* ===== UNDO ===== */
+window.adminUndo=()=>{
+  adminAuth(()=>{
+    if(!booked.length){
+      showPopup("UNDO","No reservation to undo.");
+      return;
+    }
+    booked.pop();
+    queue=Math.max(queue-1,1);
+    locked=false;
+    set(stateRef,{queue,locked,booked});
+  });
+};
+
+/* ===== RESET ===== */
+window.adminReset=()=>{
+  adminAuth(()=>{
+    set(stateRef,{queue:1,locked:false,booked:[]});
+  });
 };
 </script>
-
-</body>
-</html>
