@@ -133,28 +133,6 @@ body{
   100%{transform:scale(1.2);opacity:0}
 }
 
-/* ===== MAP HINT ===== */
-.map-hint{
-  position:fixed;
-  right:16px;
-  top:160px;
-  background:rgba(0,255,255,0.12);
-  border:1px solid #0ff;
-  padding:8px 12px;
-  font-size:13px;
-  color:#9befff;
-  border-radius:6px;
-  box-shadow:0 0 12px rgba(0,255,255,.6);
-  animation:hintPulse 1.5s infinite;
-  pointer-events:none;
-  z-index:50;
-}
-@keyframes hintPulse{
-  0%{opacity:.6}
-  50%{opacity:1}
-  100%{opacity:.6}
-}
-
 /* ===== CONTROLS ===== */
 .controls{
   position:fixed;
@@ -184,13 +162,6 @@ body{
     transition:.3s;
   }
   .left.hide{transform:translateX(-100%)}
-
-  .map-hint{
-    top:auto;
-    bottom:90px;
-    right:10px;
-    font-size:12px;
-  }
 }
 </style>
 </head>
@@ -208,6 +179,7 @@ body{
 </div>
 
 <div class="container">
+  <!-- ✅ แก้ตรงนี้: ไม่มี class hide -->
   <div class="left" id="memberList"></div>
 
   <div class="map-area">
@@ -218,9 +190,6 @@ body{
   </div>
 </div>
 
-<!-- 🔹 MAP HINT -->
-<div class="map-hint">👉 Click on the map to reserve a spot</div>
-
 <div class="controls">
   <button onclick="zoomIn()">+</button>
   <button onclick="zoomOut()">−</button>
@@ -229,9 +198,124 @@ body{
   <button onclick="adminReset()">Reset</button>
 </div>
 
-<!-- ===== SCRIPT (เดิม ไม่เปลี่ยน) ===== -->
 <script type="module">
-/* โค้ด Firebase + Logic เดิมของคุณทั้งหมด ใช้ได้เหมือนเดิม */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+const firebaseConfig={
+  apiKey:"AIzaSyBaVE7ARMQVlX7j9G-X67F46148I0ucBZo",
+  databaseURL:"https://mystic-8e71f-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId:"mystic-8e71f"
+};
+
+const app=initializeApp(firebaseConfig);
+const db=getDatabase(app);
+const stateRef=ref(db,"mysticState");
+
+const names=[
+"LGoHo","GinTonic","Cabernet","SLANE","TheDalmore","Wulinagye",
+"AmericanoNoSweet","Asahi","GoldLabel","MadamREDRUM","21stHIBIKI",
+"Highball","BlueLaBel","HalesBlueBoy","เสือฝ้าย","CaramelMacchiato",
+"17thHIBIKI","B52","GREENLABEL","IRONBALLS"
+];
+
+let queue=1,locked=false,scale=1,booked=[];
+const members=[],dots=document.getElementById("dots");
+const list=document.getElementById("memberList");
+
+names.forEach((n,i)=>{
+  const d=document.createElement("div");
+  d.className="member";
+  d.textContent=`${i+1}. ${n}`;
+  list.appendChild(d);
+  members.push(d);
+});
+
+function render(){
+  dots.innerHTML="";
+  members.forEach((m,i)=>{
+    m.classList.remove("active","reserved");
+    m.textContent=`${i+1}. ${names[i]}`;
+  });
+
+  booked.forEach(p=>{
+    drawDot(p.x,p.y,p.q);
+    members[p.q-1].classList.add("reserved");
+    members[p.q-1].textContent=`${p.q}. ${names[p.q-1]} — RESERVED`;
+  });
+
+  if(!locked && members[queue-1]){
+    members[queue-1].classList.add("active");
+  }
+
+  statusBar.textContent=locked
+    ?"ALL RESERVED — LOCKED"
+    :`Current Queue: ${queue}`;
+}
+
+onValue(stateRef,s=>{
+  const v=s.val();
+  if(!v)return;
+  queue=v.queue; locked=v.locked; booked=v.booked||[];
+  render();
+});
+
+mapWrapper.onclick=e=>{
+  if(locked){alert("❌ Reservation closed");return;}
+  if(e.target.id!=="map")return;
+  if(!confirm("Confirm reservation?"))return;
+
+  const r=map.getBoundingClientRect();
+  const x=Math.floor((e.clientX-r.left)/scale);
+  const y=Math.floor((e.clientY-r.top)/scale);
+
+  if(booked.some(p=>Math.hypot(p.x-x,p.y-y)<28)){
+    alert("❌ Spot already taken");
+    return;
+  }
+
+  booked.push({x,y,q:queue});
+
+  if(queue===names.length){
+    locked=true;
+    alert("🎉 Final reservation completed — The system is closed");
+  }else queue++;
+
+  save();
+};
+
+function save(){set(stateRef,{queue,locked,booked});}
+
+function drawDot(x,y,q){
+  const d=document.createElement("div");
+  d.className="dot";
+  d.textContent=q;
+  d.style.left=(x-14)+"px";
+  d.style.top=(y-14)+"px";
+  dots.appendChild(d);
+}
+
+/* ===== ZOOM ===== */
+window.zoomIn=()=>{scale=Math.min(scale+.1,3);mapWrapper.style.transform=`scale(${scale})`}
+window.zoomOut=()=>{scale=Math.max(scale-.1,.5);mapWrapper.style.transform=`scale(${scale})`}
+window.resetZoom=()=>{scale=1;mapWrapper.style.transform="scale(1)"}
+
+/* ===== MOBILE TOGGLE ===== */
+window.toggleList=()=>{
+  document.getElementById("memberList").classList.toggle("hide");
+}
+
+/* ===== ADMIN ===== */
+window.adminUndo=()=>{
+  if(prompt("Password")!=="7890")return;
+  if(!booked.length)return;
+  booked.pop(); queue=Math.max(queue-1,1); locked=false;
+  save();
+}
+window.adminReset=()=>{
+  if(prompt("Password")!=="7890")return;
+  set(stateRef,{queue:1,locked:false,booked:[]});
+}
 </script>
 
 </body>
