@@ -62,6 +62,23 @@ body{
   100%{opacity:.6}
 }
 
+/* ===== MOBILE TOGGLE ===== */
+.mobile-toggle{
+  display:none;
+  padding:6px;
+  background:#021b3a;
+  border-bottom:1px solid #0ff;
+  text-align:right;
+}
+.mobile-toggle button{
+  background:transparent;
+  border:1px solid #0ff;
+  color:#9befff;
+  padding:5px 10px;
+  font-size:13px;
+  cursor:pointer;
+}
+
 /* ===== MAIN ===== */
 .container{
   display:flex;
@@ -101,8 +118,11 @@ body{
     #000;
   background-size:40px 40px;
 }
-.map-wrapper{position:relative;transform-origin:top left;}
-.map-wrapper img{display:block}
+.map-wrapper{
+  position:relative;
+  transform-origin:top left;
+}
+.map-wrapper img{display:block;user-select:none}
 
 /* ===== DOT ===== */
 .dot{
@@ -110,14 +130,26 @@ body{
   width:27px;height:27px;
   border-radius:50%;
   background:#0ff;
-  color:#002;
   font-size:12px;
   font-weight:bold;
+  color:#002;
   display:flex;
   align-items:center;
   justify-content:center;
-  box-shadow:0 0 10px #0ff,inset 0 0 6px #fff;
+  box-shadow:0 0 8px #0ff,inset 0 0 6px #fff;
   pointer-events:none;
+}
+.dot::after{
+  content:'';
+  position:absolute;
+  width:39px;height:39px;
+  border:2px solid #0ff;
+  border-radius:50%;
+  animation:ring 1.5s infinite;
+}
+@keyframes ring{
+  0%{transform:scale(.6);opacity:1}
+  100%{transform:scale(1.2);opacity:0}
 }
 
 /* ===== CONTROLS ===== */
@@ -135,6 +167,27 @@ body{
   cursor:pointer;
 }
 
+/* ===== MOBILE ===== */
+@media(max-width:768px){
+  .mobile-toggle{display:block}
+  .left{
+    position:absolute;
+    left:0;
+    top:190px;
+    height:calc(100vh - 190px);
+    width:45vw;
+    max-width:180px;
+    z-index:20;
+    transition:.3s;
+  }
+  .left.hide{transform:translateX(-100%)}
+  .member{
+    font-size:10px;
+    padding:5px 6px;
+    line-height:1.2;
+  }
+}
+
 /* ===== TRON POPUP ===== */
 .tron-backdrop{
   position:fixed;
@@ -150,23 +203,28 @@ body{
   background:#021b3a;
   border:2px solid #0ff;
   padding:22px 26px;
-  min-width:300px;
+  min-width:280px;
   text-align:center;
   box-shadow:0 0 20px #0ff,inset 0 0 15px rgba(0,255,255,.6);
   z-index:1000;
+  animation:tronIn .25s ease-out;
 }
 .tron-message{
   margin-bottom:18px;
   font-size:14px;
+  color:#9befff;
   text-shadow:0 0 8px #0ff;
 }
-.tron-actions button{
-  margin:0 8px;
-  padding:6px 18px;
+.tron-box button{
   background:transparent;
   border:1px solid #0ff;
   color:#9befff;
+  padding:6px 18px;
   cursor:pointer;
+}
+@keyframes tronIn{
+  from{opacity:0;transform:translate(-50%,-60%) scale(.9)}
+  to{opacity:1;transform:translate(-50%,-50%) scale(1)}
 }
 </style>
 </head>
@@ -177,8 +235,13 @@ body{
   <div class="mystic-text">✦ MYSTIC FarmSpotReservation ✦</div>
 </div>
 
-<div class="topbar" id="statusBar"></div>
+<div class="topbar" id="statusBar">Current Queue: 1</div>
+
 <div class="hint-bar">✦ Click on the map to reserve your spot ✦</div>
+
+<div class="mobile-toggle">
+  <button onclick="toggleList()">☰ Members</button>
+</div>
 
 <div class="container">
   <div class="left" id="memberList"></div>
@@ -193,29 +256,27 @@ body{
 <div class="controls">
   <button onclick="zoomIn()">+</button>
   <button onclick="zoomOut()">−</button>
-  <button onclick="resetZoom()">Reset</button>
+  <button onclick="resetZoom()">Reset</button><br>
+  <button onclick="adminUndo()">Undo</button>
+  <button onclick="adminReset()">Reset</button>
 </div>
 
-<!-- TRON CONFIRM -->
-<div id="tronConfirm" style="display:none">
+<!-- TRON POPUP -->
+<div id="tronPopup" style="display:none">
   <div class="tron-backdrop"></div>
   <div class="tron-box">
-    <div class="tron-message" id="tronConfirmMsg"></div>
-    <div class="tron-actions">
-      <button id="tronYes">YES</button>
-      <button id="tronNo">NO</button>
-    </div>
+    <div class="tron-message" id="tronMessage"></div>
+    <button onclick="closeTronPopup()">OK</button>
   </div>
 </div>
 
 <script>
-function tronConfirm(msg, cb){
-  const box=document.getElementById("tronConfirm");
-  document.getElementById("tronConfirmMsg").textContent=msg;
-  box.style.display="block";
-
-  tronYes.onclick=()=>{box.style.display="none";cb(true);}
-  tronNo.onclick =()=>{box.style.display="none";cb(false);}
+function tronAlert(msg){
+  document.getElementById("tronMessage").textContent = msg;
+  document.getElementById("tronPopup").style.display = "block";
+}
+function closeTronPopup(){
+  document.getElementById("tronPopup").style.display = "none";
 }
 </script>
 
@@ -264,6 +325,7 @@ function render(){
   });
 
   if(!locked && members[queue-1]) members[queue-1].classList.add("active");
+
   statusBar.textContent=locked?"ALL RESERVED — LOCKED":`Current Queue: ${queue}`;
 }
 
@@ -274,26 +336,28 @@ onValue(stateRef,s=>{
 });
 
 mapWrapper.onclick=e=>{
-  if(locked)return;
+  if(locked){tronAlert("❌ Reservation closed");return;}
   if(e.target.id!=="map")return;
 
   const currentName=names[queue-1];
+  if(!confirm(`${currentName} , Do you want to reserve this spot?`))return;
 
-  tronConfirm(`${currentName} , Do you want to reserve this spot?`,ok=>{
-    if(!ok)return;
+  const r=map.getBoundingClientRect();
+  const x=Math.floor((e.clientX-r.left)/scale);
+  const y=Math.floor((e.clientY-r.top)/scale);
 
-    const r=map.getBoundingClientRect();
-    const x=Math.floor((e.clientX-r.left)/scale);
-    const y=Math.floor((e.clientY-r.top)/scale);
+  if(booked.some(p=>Math.hypot(p.x-x,p.y-y)<28)){
+    tronAlert("❌ Spot already taken");
+    return;
+  }
 
-    if(booked.some(p=>Math.hypot(p.x-x,p.y-y)<28))return;
+  booked.push({x,y,q:queue});
+  if(queue===names.length){
+    locked=true;
+    tronAlert("🎉 Final reservation completed. System locked.");
+  }else queue++;
 
-    booked.push({x,y,q:queue});
-    if(queue===names.length) locked=true;
-    else queue++;
-
-    set(stateRef,{queue,locked,booked});
-  });
+  set(stateRef,{queue,locked,booked});
 };
 
 function drawDot(x,y,q){
@@ -308,6 +372,18 @@ function drawDot(x,y,q){
 window.zoomIn=()=>{scale=Math.min(scale+.1,3);mapWrapper.style.transform=`scale(${scale})`}
 window.zoomOut=()=>{scale=Math.max(scale-.1,.5);mapWrapper.style.transform=`scale(${scale})`}
 window.resetZoom=()=>{scale=1;mapWrapper.style.transform="scale(1)"}
+window.toggleList=()=>document.querySelector(".left").classList.toggle("hide");
+
+window.adminUndo=()=>{
+  if(prompt("Password")!=="7890")return;
+  if(!booked.length)return;
+  booked.pop(); queue=Math.max(queue-1,1); locked=false;
+  set(stateRef,{queue,locked,booked});
+}
+window.adminReset=()=>{
+  if(prompt("Password")!=="7890")return;
+  set(stateRef,{queue:1,locked:false,booked:[]});
+}
 </script>
 
 </body>
