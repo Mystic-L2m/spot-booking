@@ -1,97 +1,3 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Mystic Map Reservation</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
-
-<style>
-/* ===== (CSS เดิมทั้งหมด ไม่เปลี่ยน) ===== */
-body{margin:0;font-family:'Orbitron',sans-serif;background:#020b1a;color:#9befff;overflow:hidden;}
-.header{height:110px;border-bottom:2px solid #0ff;position:relative;overflow:hidden;}
-.mystic-text{position:absolute;top:50%;font-size:42px;white-space:nowrap;transform:translateY(-50%);animation:moveText 15s linear infinite;text-shadow:0 0 15px #0ff,0 0 40px #0ff;}
-@keyframes moveText{from{left:-100%}to{left:100%}}
-.topbar{padding:8px 10px;background:linear-gradient(90deg,#021b3a,#033b66,#021b3a);border-bottom:1px solid #0ff;}
-.hint-bar{text-align:center;padding:6px 10px;font-size:13px;letter-spacing:1px;background:rgba(0,255,255,0.08);border-bottom:1px dashed rgba(0,255,255,0.4);color:#9befff;text-shadow:0 0 8px #0ff;animation:hintGlow 2s infinite;}
-@keyframes hintGlow{0%{opacity:.6}50%{opacity:1}100%{opacity:.6}}
-.container{display:flex;height:calc(100vh - 190px);}
-.left{width:280px;background:#021b3a;border-right:1px solid #0ff;overflow-y:auto;}
-.member{padding:8px 10px;border-bottom:1px solid rgba(0,255,255,.2);font-size:14px;}
-.member.active{background:rgba(0,255,255,.25);animation:glow 1.2s infinite;}
-.member.reserved{opacity:.55}
-@keyframes glow{0%{box-shadow:0 0 5px #0ff}50%{box-shadow:0 0 25px #0ff}100%{box-shadow:0 0 5px #0ff}}
-.map-area{flex:1;overflow:auto;background:linear-gradient(rgba(0,255,255,.15) 1px, transparent 1px),linear-gradient(90deg, rgba(0,255,255,.15) 1px, transparent 1px),#000;background-size:40px 40px;}
-.map-wrapper{position:relative;transform-origin:top left;}
-.map-wrapper img{display:block;user-select:none}
-.dot{position:absolute;width:27px;height:27px;border-radius:50%;background:#0ff;font-size:12px;font-weight:bold;color:#002;display:flex;align-items:center;justify-content:center;box-shadow:0 0 8px #0ff,inset 0 0 6px #fff;pointer-events:none;}
-.dot::after{content:'';position:absolute;width:39px;height:39px;border:2px solid #0ff;border-radius:50%;animation:ring 1.5s infinite;}
-@keyframes ring{0%{transform:scale(.6);opacity:1}100%{transform:scale(1.2);opacity:0}}
-.controls{position:fixed;right:12px;bottom:12px;}
-.controls button{margin:3px;padding:6px 12px;background:transparent;border:1px solid #0ff;color:#9befff;cursor:pointer;}
-
-/* ===== TRON POPUP ===== */
-.tron-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:999;}
-.tron-box{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#021b3a;border:2px solid #0ff;padding:22px 26px;min-width:280px;text-align:center;box-shadow:0 0 20px #0ff,inset 0 0 15px rgba(0,255,255,.6);z-index:1000;}
-.tron-message{margin-bottom:18px;font-size:14px;color:#9befff;text-shadow:0 0 8px #0ff;}
-.tron-box button{background:transparent;border:1px solid #0ff;color:#9befff;padding:6px 18px;margin:0 6px;cursor:pointer;}
-</style>
-</head>
-
-<body>
-
-<!-- ===== UI เดิมทั้งหมด ===== -->
-<div class="header"><div class="mystic-text">✦ MYSTIC FarmSpotReservation ✦</div></div>
-<div class="topbar" id="statusBar">Current Queue: 1</div>
-<div class="hint-bar">✦ Click on the map to reserve your spot ✦</div>
-
-<div class="container">
-  <div class="left" id="memberList"></div>
-  <div class="map-area">
-    <div class="map-wrapper" id="mapWrapper">
-      <img id="map" src="map.jpg">
-      <div id="dots"></div>
-    </div>
-  </div>
-</div>
-
-<div class="controls">
-  <button onclick="zoomIn()">+</button>
-  <button onclick="zoomOut()">−</button>
-  <button onclick="resetZoom()">Reset</button><br>
-  <button onclick="adminUndo()">Undo</button>
-  <button onclick="adminReset()">Reset</button>
-</div>
-
-<!-- ===== TRON CONFIRM (แทน confirm) ===== -->
-<div id="tronConfirm" style="display:none">
-  <div class="tron-backdrop"></div>
-  <div class="tron-box">
-    <div class="tron-message" id="tronConfirmMsg"></div>
-    <button onclick="tronConfirmYes()">YES</button>
-    <button onclick="tronConfirmNo()">NO</button>
-  </div>
-</div>
-
-<script>
-let tronConfirmCallback=null;
-
-function tronConfirm(msg,cb){
-  tronConfirmCallback=cb;
-  document.getElementById("tronConfirmMsg").textContent=msg;
-  document.getElementById("tronConfirm").style.display="block";
-}
-function tronConfirmYes(){
-  document.getElementById("tronConfirm").style.display="none";
-  tronConfirmCallback(true);
-}
-function tronConfirmNo(){
-  document.getElementById("tronConfirm").style.display="none";
-  tronConfirmCallback(false);
-}
-</script>
-
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
@@ -104,21 +10,103 @@ const app=initializeApp({
 const db=getDatabase(app);
 const stateRef=ref(db,"mysticState");
 
-const names=["LGoHo","GinTonic","Cabernet","SLANE","TheDalmore","Wulinagye","AmericanoNoSweet","Asahi","GoldLabel","MadamREDRUM","21stHIBIKI","Highball","BlueLaBel","HalesBlueBoy","เสือฝ้าย","CaramelMacchiato","17thHIBIKI","B52","GREENLABEL","IRONBALLS"];
+const names=[
+"LGoHo","GinTonic","Cabernet","SLANE","TheDalmore","Wulinagye",
+"AmericanoNoSweet","Asahi","GoldLabel","MadamREDRUM","21stHIBIKI",
+"Highball","BlueLaBel","HalesBlueBoy","เสือฝ้าย","CaramelMacchiato",
+"17thHIBIKI","B52","GREENLABEL","IRONBALLS"
+];
 
 let queue=1,locked=false,scale=1,booked=[];
-const dots=document.getElementById("dots");
+const members=[],dots=document.getElementById("dots");
+const list=document.getElementById("memberList");
 
+names.forEach((n,i)=>{
+  const d=document.createElement("div");
+  d.className="member";
+  d.textContent=`${i+1}. ${n}`;
+  list.appendChild(d);
+  members.push(d);
+});
+
+function render(){
+  dots.innerHTML="";
+  members.forEach((m,i)=>{
+    m.classList.remove("active","reserved");
+    m.textContent=`${i+1}. ${names[i]}`;
+  });
+
+  booked.forEach(p=>{
+    drawDot(p.x,p.y,p.q);
+    members[p.q-1].classList.add("reserved");
+    members[p.q-1].textContent=`${p.q}. ${names[p.q-1]} — RESERVED`;
+  });
+
+  if(!locked && members[queue-1]) members[queue-1].classList.add("active");
+  statusBar.textContent=locked?"ALL RESERVED — LOCKED":`Current Queue: ${queue}`;
+}
+
+onValue(stateRef,s=>{
+  const v=s.val(); if(!v)return;
+  queue=v.queue; locked=v.locked; booked=v.booked||[];
+  render();
+});
+
+/* ===== FIXED CONFIRM FLOW ===== */
 mapWrapper.onclick=e=>{
+  if(locked){tronAlert("❌ Reservation closed");return;}
   if(e.target.id!=="map")return;
+
   const currentName=names[queue-1];
 
   tronConfirm(`${currentName} , Do you want to reserve this spot?`,yes=>{
-    if(!yes)return;
-    // === logic เดิมทั้งหมด ===
+    if(!yes) return;
+
+    const r=map.getBoundingClientRect();
+    const x=Math.floor((e.clientX-r.left)/scale);
+    const y=Math.floor((e.clientY-r.top)/scale);
+
+    if(booked.some(p=>Math.hypot(p.x-x,p.y-y)<28)){
+      tronAlert("❌ Spot already taken");
+      return;
+    }
+
+    booked.push({x,y,q:queue});
+
+    if(queue===names.length){
+      locked=true;
+      tronAlert("🎉 Final reservation completed. System locked.");
+    }else{
+      queue++;
+    }
+
+    set(stateRef,{queue,locked,booked});
   });
 };
-</script>
 
-</body>
-</html>
+function drawDot(x,y,q){
+  const d=document.createElement("div");
+  d.className="dot";
+  d.textContent=q;
+  d.style.left=(x-14)+"px";
+  d.style.top=(y-14)+"px";
+  dots.appendChild(d);
+}
+
+/* ===== CONTROLS (เดิม ใช้งานได้ครบ) ===== */
+window.zoomIn=()=>{scale=Math.min(scale+.1,3);mapWrapper.style.transform=`scale(${scale})`;}
+window.zoomOut=()=>{scale=Math.max(scale-.1,.5);mapWrapper.style.transform=`scale(${scale})`;}
+window.resetZoom=()=>{scale=1;mapWrapper.style.transform="scale(1)";}
+window.toggleList=()=>document.querySelector(".left").classList.toggle("hide");
+
+window.adminUndo=()=>{
+  if(prompt("Password")!=="7890")return;
+  if(!booked.length)return;
+  booked.pop(); queue=Math.max(queue-1,1); locked=false;
+  set(stateRef,{queue,locked,booked});
+};
+window.adminReset=()=>{
+  if(prompt("Password")!=="7890")return;
+  set(stateRef,{queue:1,locked:false,booked:[]});
+};
+</script>
