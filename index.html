@@ -54,29 +54,6 @@ body{
   border-bottom:1px dashed rgba(0,255,255,0.4);
   color:#9befff;
   text-shadow:0 0 8px #0ff;
-  animation:hintGlow 2s infinite;
-}
-@keyframes hintGlow{
-  0%{opacity:.6}
-  50%{opacity:1}
-  100%{opacity:.6}
-}
-
-/* ===== MOBILE TOGGLE ===== */
-.mobile-toggle{
-  display:none;
-  padding:6px;
-  background:#021b3a;
-  border-bottom:1px solid #0ff;
-  text-align:right;
-}
-.mobile-toggle button{
-  background:transparent;
-  border:1px solid #0ff;
-  color:#9befff;
-  padding:5px 10px;
-  font-size:13px;
-  cursor:pointer;
 }
 
 /* ===== MAIN ===== */
@@ -139,18 +116,6 @@ body{
   box-shadow:0 0 8px #0ff,inset 0 0 6px #fff;
   pointer-events:none;
 }
-.dot::after{
-  content:'';
-  position:absolute;
-  width:39px;height:39px;
-  border:2px solid #0ff;
-  border-radius:50%;
-  animation:ring 1.5s infinite;
-}
-@keyframes ring{
-  0%{transform:scale(.6);opacity:1}
-  100%{transform:scale(1.2);opacity:0}
-}
 
 /* ===== CONTROLS ===== */
 .controls{
@@ -165,27 +130,6 @@ body{
   border:1px solid #0ff;
   color:#9befff;
   cursor:pointer;
-}
-
-/* ===== MOBILE ===== */
-@media(max-width:768px){
-  .mobile-toggle{display:block}
-  .left{
-    position:absolute;
-    left:0;
-    top:190px;
-    height:calc(100vh - 190px);
-    width:45vw;
-    max-width:180px;
-    z-index:20;
-    transition:.3s;
-  }
-  .left.hide{transform:translateX(-100%)}
-  .member{
-    font-size:10px;
-    padding:5px 6px;
-    line-height:1.2;
-  }
 }
 
 /* ===== TRON POPUP ===== */
@@ -203,16 +147,14 @@ body{
   background:#021b3a;
   border:2px solid #0ff;
   padding:22px 26px;
-  min-width:280px;
+  min-width:300px;
   text-align:center;
   box-shadow:0 0 20px #0ff,inset 0 0 15px rgba(0,255,255,.6);
   z-index:1000;
-  animation:tronIn .25s ease-out;
 }
 .tron-message{
   margin-bottom:18px;
   font-size:14px;
-  color:#9befff;
   text-shadow:0 0 8px #0ff;
 }
 .tron-box button{
@@ -221,10 +163,6 @@ body{
   color:#9befff;
   padding:6px 18px;
   cursor:pointer;
-}
-@keyframes tronIn{
-  from{opacity:0;transform:translate(-50%,-60%) scale(.9)}
-  to{opacity:1;transform:translate(-50%,-50%) scale(1)}
 }
 </style>
 </head>
@@ -236,12 +174,7 @@ body{
 </div>
 
 <div class="topbar" id="statusBar">Current Queue: 1</div>
-
 <div class="hint-bar">✦ Click on the map to reserve your spot ✦</div>
-
-<div class="mobile-toggle">
-  <button onclick="toggleList()">☰ Members</button>
-</div>
 
 <div class="container">
   <div class="left" id="memberList"></div>
@@ -256,134 +189,78 @@ body{
 <div class="controls">
   <button onclick="zoomIn()">+</button>
   <button onclick="zoomOut()">−</button>
-  <button onclick="resetZoom()">Reset</button><br>
-  <button onclick="adminUndo()">Undo</button>
-  <button onclick="adminReset()">Reset</button>
+  <button onclick="resetZoom()">Reset</button>
 </div>
 
-<!-- TRON POPUP -->
-<div id="tronPopup" style="display:none">
+<!-- TRON CONFIRM -->
+<div id="tronConfirm" style="display:none">
   <div class="tron-backdrop"></div>
   <div class="tron-box">
-    <div class="tron-message" id="tronMessage"></div>
-    <button onclick="closeTronPopup()">OK</button>
+    <div class="tron-message" id="tronConfirmMessage"></div>
+    <button id="tronYes">YES</button>
+    <button id="tronNo" style="margin-left:12px">NO</button>
   </div>
 </div>
 
 <script>
-function tronAlert(msg){
-  document.getElementById("tronMessage").textContent = msg;
-  document.getElementById("tronPopup").style.display = "block";
-}
-function closeTronPopup(){
-  document.getElementById("tronPopup").style.display = "none";
+function tronConfirm(msg){
+  return new Promise(resolve=>{
+    document.getElementById("tronConfirmMessage").textContent = msg;
+    document.getElementById("tronConfirm").style.display = "block";
+
+    const yes = document.getElementById("tronYes");
+    const no  = document.getElementById("tronNo");
+
+    const close = (v)=>{
+      document.getElementById("tronConfirm").style.display = "none";
+      yes.onclick = no.onclick = null;
+      resolve(v);
+    };
+
+    yes.onclick = ()=>close(true);
+    no.onclick  = ()=>close(false);
+  });
 }
 </script>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-
-const app=initializeApp({
-  apiKey:"AIzaSyBaVE7ARMQVlX7j9G-X67F46148I0ucBZo",
-  databaseURL:"https://mystic-8e71f-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId:"mystic-8e71f"
-});
-const db=getDatabase(app);
-const stateRef=ref(db,"mysticState");
-
-const names=[
-"LGoHo","GinTonic","Cabernet","SLANE","TheDalmore","Wulinagye",
-"AmericanoNoSweet","Asahi","GoldLabel","MadamREDRUM","21stHIBIKI",
-"Highball","BlueLaBel","HalesBlueBoy","เสือฝ้าย","CaramelMacchiato",
-"17thHIBIKI","B52","GREENLABEL","IRONBALLS"
-];
-
-let queue=1,locked=false,scale=1,booked=[];
-const members=[],dots=document.getElementById("dots");
+<script>
+const names=["A","B","C","D"];
+let queue=1,scale=1,booked=[];
 const list=document.getElementById("memberList");
+const dots=document.getElementById("dots");
 
 names.forEach((n,i)=>{
   const d=document.createElement("div");
   d.className="member";
   d.textContent=`${i+1}. ${n}`;
   list.appendChild(d);
-  members.push(d);
 });
 
-function render(){
-  dots.innerHTML="";
-  members.forEach((m,i)=>{
-    m.classList.remove("active","reserved");
-    m.textContent=`${i+1}. ${names[i]}`;
-  });
-
-  booked.forEach(p=>{
-    drawDot(p.x,p.y,p.q);
-    members[p.q-1].classList.add("reserved");
-    members[p.q-1].textContent=`${p.q}. ${names[p.q-1]} — RESERVED`;
-  });
-
-  if(!locked && members[queue-1]) members[queue-1].classList.add("active");
-
-  statusBar.textContent=locked?"ALL RESERVED — LOCKED":`Current Queue: ${queue}`;
-}
-
-onValue(stateRef,s=>{
-  const v=s.val(); if(!v)return;
-  queue=v.queue; locked=v.locked; booked=v.booked||[];
-  render();
-});
-
-mapWrapper.onclick=e=>{
-  if(locked){tronAlert("❌ Reservation closed");return;}
+mapWrapper.onclick = async e=>{
   if(e.target.id!=="map")return;
 
-  const currentName=names[queue-1];
-  if(!confirm(`${currentName} , Do you want to reserve this spot?`))return;
+  const currentName = names[queue-1];
+  const ok = await tronConfirm(`${currentName} , Do you want to reserve this spot?`);
+  if(!ok) return;
 
   const r=map.getBoundingClientRect();
-  const x=Math.floor((e.clientX-r.left)/scale);
-  const y=Math.floor((e.clientY-r.top)/scale);
+  const x=(e.clientX-r.left)/scale;
+  const y=(e.clientY-r.top)/scale;
 
-  if(booked.some(p=>Math.hypot(p.x-x,p.y-y)<28)){
-    tronAlert("❌ Spot already taken");
-    return;
-  }
+  const dot=document.createElement("div");
+  dot.className="dot";
+  dot.textContent=queue;
+  dot.style.left=(x-14)+"px";
+  dot.style.top=(y-14)+"px";
+  dots.appendChild(dot);
 
-  booked.push({x,y,q:queue});
-  if(queue===names.length){
-    locked=true;
-    tronAlert("🎉 Final reservation completed. System locked.");
-  }else queue++;
-
-  set(stateRef,{queue,locked,booked});
+  queue++;
+  statusBar.textContent=`Current Queue: ${queue}`;
 };
 
-function drawDot(x,y,q){
-  const d=document.createElement("div");
-  d.className="dot";
-  d.textContent=q;
-  d.style.left=(x-14)+"px";
-  d.style.top=(y-14)+"px";
-  dots.appendChild(d);
-}
-
-window.zoomIn=()=>{scale=Math.min(scale+.1,3);mapWrapper.style.transform=`scale(${scale})`}
-window.zoomOut=()=>{scale=Math.max(scale-.1,.5);mapWrapper.style.transform=`scale(${scale})`}
+window.zoomIn=()=>{scale+=.1;mapWrapper.style.transform=`scale(${scale})`}
+window.zoomOut=()=>{scale=Math.max(.5,scale-.1);mapWrapper.style.transform=`scale(${scale})`}
 window.resetZoom=()=>{scale=1;mapWrapper.style.transform="scale(1)"}
-window.toggleList=()=>document.querySelector(".left").classList.toggle("hide");
-
-window.adminUndo=()=>{
-  if(prompt("Password")!=="7890")return;
-  if(!booked.length)return;
-  booked.pop(); queue=Math.max(queue-1,1); locked=false;
-  set(stateRef,{queue,locked,booked});
-}
-window.adminReset=()=>{
-  if(prompt("Password")!=="7890")return;
-  set(stateRef,{queue:1,locked:false,booked:[]});
-}
 </script>
 
 </body>
