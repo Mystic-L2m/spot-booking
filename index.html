@@ -29,7 +29,7 @@ body{
   font-size:42px;
   white-space:nowrap;
   transform:translateY(-50%);
-  animation:moveText 15s linear infinite;
+  
   text-shadow:0 0 15px #0ff,0 0 40px #0ff;
 }
 @keyframes moveText{
@@ -264,15 +264,46 @@ body{
 }
 
 .ascii-banner pre{
-  margin: 0;
-  padding: 0;
+  margin:0;
+  padding:0;
   font-family: inherit;
-  letter-spacing: 0;
+  letter-spacing:0;
+
+  /* TRON ENERGY */
+  background: linear-gradient(
+    90deg,
+    #0ff 0%,
+    #7fffff 20%,
+    #ffffff 35%,
+    #7fffff 50%,
+    #0ff 65%,
+    #003344 80%,
+    #0ff 100%
+  );
+  background-size: 300% 100%;
+  background-position: 0% 50%;
+
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+
+  animation: tronEnergy 6s linear infinite;
+
   text-shadow:
-    0 0 8px #0ff,
-    0 0 20px rgba(0,255,255,.8),
-    0 0 40px rgba(0,255,255,.6);
+    0 0 6px rgba(0,255,255,.6),
+    0 0 14px rgba(0,255,255,.5),
+    0 0 30px rgba(0,255,255,.4);
 }
+@keyframes tronEnergy{
+  from{
+    background-position: 0% 50%;
+  }
+  to{
+    background-position: 300% 50%;
+  }
+}
+
   
 </style>
 </head>
@@ -497,6 +528,7 @@ window.adminReset=async()=>{
 
 </body>
 </html>
+
 
 
 
