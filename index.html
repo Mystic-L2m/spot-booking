@@ -312,6 +312,18 @@ body{
   from{background-position:0 -100%}
   to{background-position:0 200%}
 }
+@keyframes asciiGlitch{
+  0%{transform:none}
+  15%{transform:translateX(-1px)}
+  30%{transform:translateX(1px)}
+  45%{transform:none}
+}
+
+.ascii-banner{
+  animation:
+    asciiGlow 2.5s infinite alternate,
+    asciiGlitch .15s infinite;
+}
 
   
 </style>
@@ -537,6 +549,7 @@ window.adminReset=async()=>{
 
 </body>
 </html>
+
 
 
 
