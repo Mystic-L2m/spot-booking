@@ -273,72 +273,6 @@ body{
     0 0 20px rgba(0,255,255,.8),
     0 0 40px rgba(0,255,255,.6);
 }
-
-.ascii-banner{
-  position: relative;
-  animation: asciiGlow 2.8s infinite alternate;
-}
-
-@keyframes asciiGlow{
-  0%{
-    text-shadow:
-      0 0 6px #0ff,
-      0 0 14px rgba(0,255,255,.7);
-  }
-  100%{
-    text-shadow:
-      0 0 14px #0ff,
-      0 0 40px rgba(0,255,255,1);
-  }
-}
-
-/* scanline */
-.ascii-banner::after{
-  content:"";
-  position:absolute;
-  inset:0;
-  background:
-    linear-gradient(
-      to bottom,
-      transparent 45%,
-      rgba(0,255,255,.18) 50%,
-      transparent 55%
-    );
-  animation: scanMove 3s linear infinite;
-  pointer-events:none;
-}
-
-@keyframes scanMove{
-  from{background-position:0 -100%}
-  to{background-position:0 200%}
-}
-.ascii-banner{
-  background:
-    linear-gradient(
-      90deg,
-      #0ff,
-      #9befff,
-      #0ff
-    );
-  background-size:300% 100%;
-  -webkit-background-clip:text;
-  color:transparent;
-  animation: energyFlow 6s linear infinite;
-}
-
-@keyframes energyFlow{
-  from{background-position:0%}
-  to{background-position:300%}
-}
-
-const pre=document.querySelector(".ascii-banner pre");
-const lines=pre.innerText.split("\n");
-pre.innerText="";
-lines.forEach((l,i)=>{
-  setTimeout(()=>pre.innerText+=l+"\n",i*120);
-});
-
-
   
 </style>
 </head>
@@ -563,6 +497,7 @@ window.adminReset=async()=>{
 
 </body>
 </html>
+
 
 
 
