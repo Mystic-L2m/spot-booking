@@ -331,6 +331,13 @@ body{
   to{background-position:300%}
 }
 
+const pre=document.querySelector(".ascii-banner pre");
+const lines=pre.innerText.split("\n");
+pre.innerText="";
+lines.forEach((l,i)=>{
+  setTimeout(()=>pre.innerText+=l+"\n",i*120);
+});
+
 
   
 </style>
@@ -556,6 +563,7 @@ window.adminReset=async()=>{
 
 </body>
 </html>
+
 
 
 
