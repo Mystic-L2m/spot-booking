@@ -312,18 +312,25 @@ body{
   from{background-position:0 -100%}
   to{background-position:0 200%}
 }
-@keyframes asciiGlitch{
-  0%{transform:none}
-  15%{transform:translateX(-1px)}
-  30%{transform:translateX(1px)}
-  45%{transform:none}
+.ascii-banner{
+  background:
+    linear-gradient(
+      90deg,
+      #0ff,
+      #9befff,
+      #0ff
+    );
+  background-size:300% 100%;
+  -webkit-background-clip:text;
+  color:transparent;
+  animation: energyFlow 6s linear infinite;
 }
 
-.ascii-banner{
-  animation:
-    asciiGlow 2.5s infinite alternate,
-    asciiGlitch .15s infinite;
+@keyframes energyFlow{
+  from{background-position:0%}
+  to{background-position:300%}
 }
+
 
   
 </style>
@@ -549,6 +556,7 @@ window.adminReset=async()=>{
 
 </body>
 </html>
+
 
 
 
