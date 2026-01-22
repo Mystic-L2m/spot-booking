@@ -253,60 +253,48 @@ body{
   text-align:center;
 }
 
-/* ===== ASCII HEAD BANNER (FIX ALIGN) ===== */
-.ascii-banner{
-  font-family: "Courier New", Consolas, monospace;
-  font-size: 12px;
-  line-height: 1.05;
-  letter-spacing: 0;
-  white-space: pre;
-  display:inline-block;
-  text-align: left;
+/* ===== TRON FULL BANNER TEXT ===== */
+.tron-banner{
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  pointer-events:none;
 }
 
-.ascii-banner pre{
-  margin:0;
-  padding:0;
-  font-family:"Courier New", Consolas, monospace;
-  white-space:pre;
-  font-family: inherit;
-  letter-spacing:0;
-  white-space:pre;
-  
-  /* TRON ENERGY */
-  background: linear-gradient(
-    90deg,
-    #0ff 0%,
-    #7fffff 20%,
-    #ffffff 50%,
-    #7fffff 50%,
-    #0ff 65%,
-    #003344 80%,
-    #0ff 100%
-  );
-  background-size: 300% 100%;
-  background-position: 0% 50%;
+/* ตัวอักษรหลัก */
+.tron-banner span{
+  font-family:'Orbitron',sans-serif;
+  font-weight:700;
 
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  color: transparent;
+  /* ใหญ่เต็มแถบแบบ responsive */
+  font-size:clamp(26px, 6vw, 64px);
+  letter-spacing:0.25em;
+  text-transform:uppercase;
 
-  animation: tronEnergy 6s linear infinite;
+  color:#9befff;
 
+  /* Neon Layer */
   text-shadow:
-    0 0 6px rgba(0,255,255,.6),
-    0 0 14px rgba(0,255,255,.5),
-    0 0 30px rgba(0,255,255,.4);
+    0 0 8px #0ff,
+    0 0 18px rgba(0,255,255,.9),
+    0 0 36px rgba(0,255,255,.7),
+    0 0 64px rgba(0,255,255,.5);
+
+  /* เส้นพลังงานในตัวอักษร */
+  background:linear-gradient(
+    90deg,
+    #9befff,
+    #0ff,
+    #ffffff,
+    #0ff,
+    #9befff
+  );
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
 }
-@keyframes tronEnergy{
-  from{
-    background-position: 0% 50%;
-  }
-  to{
-    background-position: 300% 50%;
-  }
-}
+
 
   
 </style>
@@ -315,15 +303,10 @@ body{
 <body>
 
 <div class="header">
-  <div class="mystic-text ascii-banner">
-<pre>
-__  __ __     __ ____  _____ ___  ____   _____  _    ____  __  __ ____  ____   ___ _____   ____  _____ ____  _____ ______     ___  _____ ___ ___  _   _ 
-|  \/  |\ \   / // ___||_   _|_ _|/ ___| |  ___|/ \  |  _ \|  \/  / ___||  _ \ / _ \_   _| |  _ \| ____/ ___|| ____|  _ \ \   / / \_   _|_ _/ _ \| \ | |
-| |\/| | \ \ / / \___ \  | |  | || |     | |_  / _ \ | |_) | |\/| \___ \| |_) | | | || |   | |_) |  _| \___ \|  _| | |_) \ \ / / _ \ | |  | | | |  \| |
-| |  | |  \ V /   ___) | | |  | || |___  |  _|/ ___ \|  _ <| |  | |___) |  __/| |_| || |   |  _ <| |___ ___) | |___|  _ < \ V / ___ \| |  | | |_| | |\  |
-|_|  |_|   |_|   |____/  |_| |___|\____| |_| /_/   \_\_| \_\_|  |_|____/|_|    \___/ |_|   |_| \_\_____|____/|_____|_| \_\ \_/_/   \_\_| |___\___/|_| \_|
-</pre>
+  <div class="tron-banner">
+  <span>MYSTIC FARMSPOT RESERVATION</span>
 </div>
+
 </div>
 
 <div class="topbar" id="statusBar">Current Queue: 1</div>
@@ -532,6 +515,7 @@ window.adminReset=async()=>{
 
 </body>
 </html>
+
 
 
 
