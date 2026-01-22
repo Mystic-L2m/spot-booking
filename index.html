@@ -8,6 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
 
 <style>
+/* ===== BASE ===== */
 body{
   margin:0;
   font-family:'Orbitron',sans-serif;
@@ -73,6 +74,7 @@ body{
   padding:8px 10px;
   border-bottom:1px solid rgba(0,255,255,.2);
   font-size:14px;
+  cursor:pointer;
 }
 .member.active{
   background:rgba(0,255,255,.25);
@@ -114,9 +116,8 @@ body{
   display:flex;
   align-items:center;
   justify-content:center;
-  pointer-events:none;
+  pointer-events:auto;
 
-  /* core glow */
   box-shadow:
     0 0 10px #0ff,
     0 0 22px rgba(0,255,255,.9),
@@ -132,22 +133,47 @@ body{
   border-radius:50%;
   border:2px solid rgba(0,255,255,.9);
   animation:dotPulse 1.6s infinite;
-  box-shadow:
-    0 0 18px rgba(0,255,255,.8),
-    0 0 36px rgba(0,255,255,.6);
 }
-
 @keyframes dotPulse{
-  0%{
-    transform:scale(.6);
-    opacity:1;
-  }
-  100%{
-    transform:scale(1.3);
-    opacity:0;
-  }
+  0%{transform:scale(.6);opacity:1}
+  100%{transform:scale(1.3);opacity:0}
 }
 
+/* ===== DOT TOOLTIP ===== */
+.dot .tooltip{
+  position:absolute;
+  bottom:140%;
+  left:50%;
+  transform:translateX(-50%);
+  background:#021b3a;
+  border:1px solid #0ff;
+  padding:4px 10px;
+  font-size:11px;
+  white-space:nowrap;
+  box-shadow:0 0 12px #0ff;
+  opacity:0;
+  pointer-events:none;
+  transition:.2s;
+}
+.dot:hover .tooltip{
+  opacity:1;
+}
+
+/* ===== HIGHLIGHT FROM LIST ===== */
+.highlight-ring{
+  position:absolute;
+  width:70px;
+  height:70px;
+  border-radius:50%;
+  border:3px solid #0ff;
+  pointer-events:none;
+  animation:highlightFade 2.5s forwards;
+  box-shadow:0 0 30px #0ff;
+}
+@keyframes highlightFade{
+  from{opacity:1}
+  to{opacity:0}
+}
 
 /* ===== CONTROLS ===== */
 .controls{
@@ -164,43 +190,14 @@ body{
   cursor:pointer;
 }
 
-/* ===== TRON POPUP ===== */
-.tron-overlay{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.75);
-  z-index:999;
-}
-.tron-box{
-  position:fixed;
-  top:50%;
-  left:50%;
-  transform:translate(-50%,-50%);
-  background:#021b3a;
-  border:2px solid #0ff;
-  padding:22px 26px;
-  min-width:280px;
-  text-align:center;
-  box-shadow:0 0 20px #0ff,inset 0 0 15px rgba(0,255,255,.6);
-  z-index:1000;
-}
-.tron-box p{
-  margin-bottom:18px;
-  font-size:14px;
-  color:#9befff;
-  text-shadow:0 0 8px #0ff;
-}
-.tron-box button,input{
-  background:transparent;
-  border:1px solid #0ff;
-  color:#9befff;
-  padding:6px 18px;
-  margin:4px;
-}
-.tron-box input{
-  width:120px;
-  text-align:center;
-}
+/* ===== TRON POPUP (เดิม ไม่แก้) ===== */
+.tron-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:999;}
+.tron-box{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+background:#021b3a;border:2px solid #0ff;padding:22px 26px;min-width:280px;
+text-align:center;box-shadow:0 0 20px #0ff,inset 0 0 15px rgba(0,255,255,.6);z-index:1000;}
+.tron-box p{margin-bottom:18px;font-size:14px;color:#9befff;text-shadow:0 0 8px #0ff;}
+.tron-box button,input{background:transparent;border:1px solid #0ff;color:#9befff;padding:6px 18px;margin:4px;}
+.tron-box input{width:120px;text-align:center;}
 </style>
 </head>
 
@@ -231,55 +228,6 @@ body{
   <button onclick="adminReset()">Reset</button>
 </div>
 
-<script>
-function tronAlert(msg){
-  return new Promise(r=>{
-    const o=document.createElement("div");
-    o.className="tron-overlay";
-    o.innerHTML=`
-      <div class="tron-box">
-        <p>${msg}</p>
-        <button>OK</button>
-      </div>`;
-    o.querySelector("button").onclick=()=>{o.remove();r();};
-    document.body.appendChild(o);
-  });
-}
-
-function tronConfirm(msg){
-  return new Promise(r=>{
-    const o=document.createElement("div");
-    o.className="tron-overlay";
-    o.innerHTML=`
-      <div class="tron-box">
-        <p>${msg}</p>
-        <button id="yes">YES</button>
-        <button id="no">NO</button>
-      </div>`;
-    o.querySelector("#yes").onclick=()=>{o.remove();r(true);}
-    o.querySelector("#no").onclick=()=>{o.remove();r(false);}
-    document.body.appendChild(o);
-  });
-}
-
-function tronPrompt(msg){
-  return new Promise(r=>{
-    const o=document.createElement("div");
-    o.className="tron-overlay";
-    o.innerHTML=`
-      <div class="tron-box">
-        <p>${msg}</p>
-        <input type="password">
-        <br>
-        <button>OK</button>
-      </div>`;
-    const i=o.querySelector("input");
-    o.querySelector("button").onclick=()=>{o.remove();r(i.value);}
-    document.body.appendChild(o);
-  });
-}
-</script>
-
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
@@ -292,10 +240,10 @@ const app=initializeApp({
 const db=getDatabase(app);
 const stateRef=ref(db,"mysticState");
 
-const names=[ "LGoHo","GinTonic","Cabernet","SLANE","TheDalmore","Wulinagye",
+const names=["LGoHo","GinTonic","Cabernet","SLANE","TheDalmore","Wulinagye",
 "AmericanoNoSweet","Asahi","GoldLabel","MadamREDRUM","21stHIBIKI",
 "Highball","BlueLaBel","HalesBlueBoy","เสือฝ้าย","CaramelMacchiato",
-"17thHIBIKI","B52","GREENLABEL","IRONBALLS" ];
+"17thHIBIKI","B52","GREENLABEL","IRONBALLS"];
 
 let queue=1,locked=false,scale=1,booked=[];
 const members=[],dots=document.getElementById("dots");
@@ -305,6 +253,7 @@ names.forEach((n,i)=>{
   const d=document.createElement("div");
   d.className="member";
   d.textContent=`${i+1}. ${n}`;
+  d.onclick=()=>showBookedLocation(i+1);
   list.appendChild(d);
   members.push(d);
 });
@@ -315,11 +264,13 @@ function render(){
     m.classList.remove("active","reserved");
     m.textContent=`${i+1}. ${names[i]}`;
   });
+
   booked.forEach(p=>{
     drawDot(p.x,p.y,p.q);
     members[p.q-1].classList.add("reserved");
     members[p.q-1].textContent=`${p.q}. ${names[p.q-1]} — RESERVED`;
   });
+
   if(!locked && members[queue-1]) members[queue-1].classList.add("active");
   statusBar.textContent=locked?"ALL RESERVED — LOCKED":`Current Queue: ${queue}`;
 }
@@ -330,53 +281,37 @@ onValue(stateRef,s=>{
   render();
 });
 
-mapWrapper.onclick=async e=>{
-  if(locked){await tronAlert("❌ Reservation closed");return;}
-  if(e.target.id!=="map")return;
-  const name=names[queue-1];
-  if(!await tronConfirm(`${name} , Do you want to reserve this spot?`))return;
-
-  const r=map.getBoundingClientRect();
-  const x=Math.floor((e.clientX-r.left)/scale);
-  const y=Math.floor((e.clientY-r.top)/scale);
-
-  if(booked.some(p=>Math.hypot(p.x-x,p.y-y)<28)){
-    await tronAlert("❌ Spot already taken");return;
-  }
-
-  booked.push({x,y,q:queue});
-  if(queue===names.length){
-    locked=true;
-    await tronAlert("🎉 Final reservation completed. System locked.");
-  }else queue++;
-
-  set(stateRef,{queue,locked,booked});
-};
-
 function drawDot(x,y,q){
   const d=document.createElement("div");
   d.className="dot";
   d.textContent=q;
   d.style.left=(x-14)+"px";
   d.style.top=(y-14)+"px";
+
+  const tip=document.createElement("div");
+  tip.className="tooltip";
+  tip.textContent=names[q-1];
+  d.appendChild(tip);
+
   dots.appendChild(d);
 }
 
+function showBookedLocation(q){
+  const p=booked.find(b=>b.q===q);
+  if(!p) return;
+
+  const ring=document.createElement("div");
+  ring.className="highlight-ring";
+  ring.style.left=(p.x-35)+"px";
+  ring.style.top=(p.y-35)+"px";
+  dots.appendChild(ring);
+  setTimeout(()=>ring.remove(),2500);
+}
+
+/* ===== ZOOM ===== */
 window.zoomIn=()=>{scale=Math.min(scale+.1,3);mapWrapper.style.transform=`scale(${scale})`}
 window.zoomOut=()=>{scale=Math.max(scale-.1,.5);mapWrapper.style.transform=`scale(${scale})`}
 window.resetZoom=()=>{scale=1;mapWrapper.style.transform="scale(1)"}
-
-window.adminUndo=async()=>{
-  if(await tronPrompt("Password")!=="7890")return;
-  if(!booked.length)return;
-  booked.pop(); queue=Math.max(queue-1,1); locked=false;
-  set(stateRef,{queue,locked,booked});
-}
-
-window.adminReset=async()=>{
-  if(await tronPrompt("Password")!=="7890")return;
-  set(stateRef,{queue:1,locked:false,booked:[]});
-}
 </script>
 
 </body>
