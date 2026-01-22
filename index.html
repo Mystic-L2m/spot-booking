@@ -374,6 +374,32 @@ function render(){
   if(!locked && members[queue-1]) members[queue-1].classList.add("active");
   statusBar.textContent=locked?"ALL RESERVED — LOCKED":`Current Queue: ${queue}`;
 }
+// ===== CLICK NAME → SHOW DOT LABEL =====
+members.forEach((m,i)=>{
+  m.onclick=()=>{
+    // ลบ label ที่แสดงอยู่ก่อน
+    document.querySelectorAll(".dot.show-label")
+      .forEach(d=>d.classList.remove("show-label"));
+
+    const dot=document.querySelector(`.dot[data-q="${i+1}"]`);
+    if(!dot) return;
+
+    // แสดงชื่อ
+    dot.classList.add("show-label");
+
+    // เลื่อนแผนที่ไปยังจุด
+    dot.scrollIntoView({
+      behavior:"smooth",
+      block:"center",
+      inline:"center"
+    });
+
+    // ซ่อนอัตโนมัติ
+    setTimeout(()=>{
+      dot.classList.remove("show-label");
+    },3000);
+  };
+});
 
 onValue(stateRef,s=>{
   const v=s.val(); if(!v)return;
@@ -441,5 +467,6 @@ window.adminReset=async()=>{
 
 </body>
 </html>
+
 
 
