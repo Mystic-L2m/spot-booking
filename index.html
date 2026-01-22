@@ -147,6 +147,26 @@ body{
   pointer-events:none;
   z-index:3;
 }
+/* ===== FORCE SHOW LABEL (RED NEON) ===== */
+.dot.show-label .dot-label{
+  color:#ffd6d6;
+  background:rgba(40,0,0,.95);
+  border:1px solid rgba(255,60,60,.95);
+
+  text-shadow:
+    0 0 6px #ff3c3c,
+    0 0 14px rgba(255,60,60,.9);
+
+  box-shadow:
+    0 0 14px rgba(255,60,60,.9),
+    0 0 32px rgba(255,60,60,.7);
+}
+
+/* ลูกศรใต้ label เป็นสีแดง */
+.dot.show-label .dot-label::after{
+  border-color:
+    rgba(255,60,60,.95) transparent transparent transparent;
+}
 
 /* ลูกศรชี้ลง */
 .dot-label::after{
@@ -553,6 +573,7 @@ window.adminReset=async()=>{
 
 </body>
 </html>
+
 
 
 
