@@ -252,13 +252,41 @@ body{
   width:120px;
   text-align:center;
 }
+
+/* ===== ASCII HEAD BANNER ===== */
+.ascii-banner{
+  font-family: "Courier New", monospace;
+  font-size: 12px;
+  line-height: 1.2;
+  white-space: pre;
+  text-align: left;
+}
+
+.ascii-banner pre{
+  margin:0;
+  text-shadow:
+    0 0 8px #0ff,
+    0 0 20px rgba(0,255,255,.8),
+    0 0 40px rgba(0,255,255,.6);
+}
+
+
+  
 </style>
 </head>
 
 <body>
 
 <div class="header">
-  <div class="mystic-text">✦ MYSTIC FarmSpotReservation ✦</div>
+  <div class="mystic-text ascii-banner">
+<pre>
+__  __ __     __ ____  _____ ___  ____   _____  _    ____  __  __ ____  ____   ___ _____   ____  _____ ____  _____ ______     ___  _____ ___ ___  _   _ 
+|  \/  |\ \   / // ___||_   _|_ _|/ ___| |  ___|/ \  |  _ \|  \/  / ___||  _ \ / _ \_   _| |  _ \| ____/ ___|| ____|  _ \ \   / / \_   _|_ _/ _ \| \ | |
+| |\/| | \ \ / / \___ \  | |  | || |     | |_  / _ \ | |_) | |\/| \___ \| |_) | | | || |   | |_) |  _| \___ \|  _| | |_) \ \ / / _ \ | |  | | | |  \| |
+| |  | |  \ V /   ___) | | |  | || |___  |  _|/ ___ \|  _ <| |  | |___) |  __/| |_| || |   |  _ <| |___ ___) | |___|  _ < \ V / ___ \| |  | | |_| | |\  |
+|_|  |_|   |_|   |____/  |_| |___|\____| |_| /_/   \_\_| \_\_|  |_|____/|_|    \___/ |_|   |_| \_\_____|____/|_____|_| \_\ \_/_/   \_\_| |___\___/|_| \_|
+</pre>
+</div>
 </div>
 
 <div class="topbar" id="statusBar">Current Queue: 1</div>
@@ -467,6 +495,7 @@ window.adminReset=async()=>{
 
 </body>
 </html>
+
 
 
 
