@@ -294,6 +294,26 @@ body{
   -webkit-background-clip:text;
   -webkit-text-fill-color:transparent;
 }
+.header::before,
+.header::after{
+  content:"";
+  position:absolute;
+  left:0;
+  right:0;
+  height:2px;
+  background:linear-gradient(
+    90deg,
+    transparent,
+    #0ff,
+    #9befff,
+    #0ff,
+    transparent
+  );
+  box-shadow:0 0 12px #0ff;
+}
+
+.header::before{ top:0; }
+.header::after{ bottom:0; }
 
 
   
@@ -515,6 +535,7 @@ window.adminReset=async()=>{
 
 </body>
 </html>
+
 
 
 
