@@ -274,7 +274,24 @@ body{
     0 0 40px rgba(0,255,255,.6);
 }
 
+.ascii-banner{
+  background:
+    linear-gradient(
+      90deg,
+      #0ff,
+      #9befff,
+      #0ff
+    );
+  background-size:300% 100%;
+  -webkit-background-clip:text;
+  color:transparent;
+  animation: energyFlow 6s linear infinite;
+}
 
+@keyframes energyFlow{
+  from{background-position:0%}
+  to{background-position:300%}
+}
   
 </style>
 </head>
@@ -499,6 +516,7 @@ window.adminReset=async()=>{
 
 </body>
 </html>
+
 
 
 
