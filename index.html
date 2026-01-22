@@ -148,6 +148,38 @@ body{
   }
 }
 
+/* ===== DOT TOOLTIP ===== */
+.dot{
+  pointer-events:auto; /* เปิดให้ hover ได้ */
+}
+
+.dot::before{
+  content:attr(data-name);
+  position:absolute;
+  bottom:120%;
+  left:50%;
+  transform:translateX(-50%);
+  white-space:nowrap;
+
+  background:rgba(0,20,40,.95);
+  border:1px solid #0ff;
+  padding:4px 8px;
+  font-size:11px;
+  color:#9befff;
+  text-shadow:0 0 6px #0ff;
+  box-shadow:0 0 12px rgba(0,255,255,.8);
+
+  opacity:0;
+  pointer-events:none;
+  transition:.2s;
+  border-radius:4px;
+  z-index:50;
+}
+
+.dot:hover::before{
+  opacity:1;
+}
+
 
 /* ===== CONTROLS ===== */
 .controls{
@@ -381,4 +413,5 @@ window.adminReset=async()=>{
 
 </body>
 </html>
+
 
