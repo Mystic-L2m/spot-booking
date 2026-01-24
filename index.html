@@ -116,17 +116,16 @@ body{
   justify-content:center;
   pointer-events:auto;
 
-  position:absolute;
-  overflow:visible;   /* ⭐ สำคัญมาก */
-  z-index:5;          /* ⭐ สร้าง stacking context */
-  
-  /* core glow */
+  overflow:visible;   /* ⭐ จำเป็น */
+  z-index:10;         /* ⭐ dot เป็นฐาน */
+
   box-shadow:
     0 0 10px #0ff,
     0 0 22px rgba(0,255,255,.9),
     0 0 38px rgba(0,255,255,.7),
     inset 0 0 8px #fff;
 }
+  
 /* ===== DOT OWNER LABEL ===== */
 .dot-label{
   position:absolute;
@@ -149,7 +148,7 @@ body{
   box-shadow:0 0 12px rgba(0,255,255,.8);
 
   pointer-events:none;
-  z-index:3;
+  z-index:20;
 }
 /* ===== FORCE SHOW LABEL (RED NEON) ===== */
 .dot.show-label .dot-label{
@@ -358,22 +357,16 @@ body{
 .header::after{ bottom:0; }
 
 /* ===== RED LASER LINK : LABEL → DOT ===== */
-.dot{
-  position:absolute;
-  z-index:1; /* ให้เป็นฐาน */
-}
-
 .dot.show-label::before{
   content:"";
   position:absolute;
 
-  /* เริ่มจากกลาง dot */
   left:50%;
-  bottom:100%;          /* ยิงขึ้นไปหา label */
+  bottom:100%;                /* ยิงขึ้น */
   transform:translateX(-50%);
 
   width:2px;
-  height:34px;
+  height:60px;                /* ⭐ เพิ่มความยาว */
 
   background:linear-gradient(
     to top,
@@ -383,29 +376,15 @@ body{
   );
 
   box-shadow:
-    0 0 10px rgba(255,60,60,.9),
-    0 0 24px rgba(255,60,60,.8);
+    0 0 8px rgba(255,60,60,.9),
+    0 0 20px rgba(255,60,60,.8);
 
   animation:redLaserPulse .7s infinite;
   pointer-events:none;
 
-  z-index:2; /* อยู่ใต้ label แต่เหนือ dot */
+  z-index:15;                 /* ⭐ เหนือ dot */
 }
 
-@keyframes redLaserPulse{
-  0%{
-    opacity:.3;
-    filter:brightness(1);
-  }
-  50%{
-    opacity:1;
-    filter:brightness(1.6);
-  }
-  100%{
-    opacity:.3;
-    filter:brightness(1);
-  }
-}
 
 
   
@@ -627,6 +606,7 @@ window.adminReset=async()=>{
 
 </body>
 </html>
+
 
 
 
