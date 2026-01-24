@@ -537,6 +537,8 @@ const names=[ "LGoHo","GinTonic","Cabernet","SLANE","TheDalmore","Wulinagye",
 "17thHIBIKI","B52","GREENLABEL","IRONBALLS" ];
 
 let queue=1,locked=false,scale=1,booked=[];
+let laserLock = false;
+  
 const members=[],dots=document.getElementById("dots");
 const list=document.getElementById("memberList");
 
@@ -572,25 +574,39 @@ members.forEach((m,i)=>{
     const dot=document.querySelector(`.dot[data-q="${i+1}"]`);
     if(!dot) return;
 
-    // แสดงชื่อ
-    dot.classList.add("show-label");
-    
-    // 🔴 ยิง laser จากชื่อ → จุดจริง
-    drawLaserFromListToDot(m, dot);
-    
-    // เลื่อนแผนที่ไปยังจุด
-    dot.scrollIntoView({
-      behavior:"smooth",
-      block:"center",
-      inline:"center"
-    });
+   // แสดง dot + label แดง
+dot.classList.add("show-label");
 
-    // ซ่อนอัตโนมัติ
-    setTimeout(()=>{
-      dot.classList.remove("show-label");
-    },3000);
-  };
+// 🔒 ล็อกแผนที่
+laserLock = true;
+mapWrapper.style.pointerEvents = "none";
+mapWrapper.parentElement.style.overflow = "hidden";
+
+// 🔴 ยิง laser
+drawLaserFromListToDot(m, dot);
+
+// เลื่อนแผนที่ไปหาจุด (ครั้งเดียว)
+dot.scrollIntoView({
+  behavior:"smooth",
+  block:"center",
+  inline:"center"
 });
+
+
+ setTimeout(()=>{
+  // เอาสีแดง + label ออก
+  dot.classList.remove("show-label");
+
+  // ❌ ลบ laser SVG
+  document.getElementById("laserLayer").innerHTML = "";
+
+  // 🔓 ปลดล็อกแผนที่
+  laserLock = false;
+  mapWrapper.style.pointerEvents = "";
+  mapWrapper.parentElement.style.overflow = "";
+
+},3000);
+
 
 onValue(stateRef,s=>{
   const v=s.val(); if(!v)return;
@@ -599,6 +615,7 @@ onValue(stateRef,s=>{
 });
 
 mapWrapper.onclick=async e=>{
+  if(laserLock) return;
   if(locked){await tronAlert("❌ Reservation closed");return;}
   if(e.target.id!=="map")return;
   const name=names[queue-1];
@@ -641,9 +658,9 @@ function drawDot(x,y,q){
 
 
 
-window.zoomIn=()=>{scale=Math.min(scale+.1,3);mapWrapper.style.transform=`scale(${scale})`}
-window.zoomOut=()=>{scale=Math.max(scale-.1,.5);mapWrapper.style.transform=`scale(${scale})`}
-window.resetZoom=()=>{scale=1;mapWrapper.style.transform="scale(1)"}
+window.zoomIn=()=>{if(laserLock) return;scale=Math.min(scale+.1,3);mapWrapper.style.transform=`scale(${scale})`}
+window.zoomOut=()=>{if(laserLock) return;scale=Math.max(scale-.1,.5);mapWrapper.style.transform=`scale(${scale})`}
+window.resetZoom=()=>{if(laserLock) return;scale=1;mapWrapper.style.transform="scale(1)"}
 
 window.adminUndo=async()=>{
   if(await tronPrompt("Password")!=="7890")return;
@@ -665,5 +682,6 @@ window.adminReset=async()=>{
 
 </body>
 </html>
+
 
 
