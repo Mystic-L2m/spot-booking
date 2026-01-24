@@ -126,18 +126,24 @@ body{
 /* ===== DOT OWNER LABEL ===== */
 .dot-label{
   position:absolute;
-  bottom:110%;
-  left:50%;
-  transform:translateX(-50%);
+
+  /* ⭐ ย้ายไปด้านบนซ้าย */
+  bottom:120%;
+  right:120%;
+
+  /* ⭐ เอียง 45 องศา */
+  transform:rotate(-45deg);
+  transform-origin:bottom right;
+
   opacity:0;
-  transition:opacity .2s ease, transform .2s ease;
+  transition:opacity .2s ease;
 
   font-size:11px;
   white-space:nowrap;
-  padding:3px 7px;
+  padding:3px 8px;
 
   color:#9befff;
-  background:rgba(0,15,35,.9);
+  background:rgba(0,15,35,.95);
   border:1px solid rgba(0,255,255,.9);
   border-radius:4px;
 
@@ -147,6 +153,7 @@ body{
   pointer-events:none;
   z-index:20;
 }
+
 /* ===== FORCE SHOW LABEL (RED NEON) ===== */
 .dot.show-label .dot-label{
   color:#ffd6d6;
@@ -358,12 +365,19 @@ body{
   content:"";
   position:absolute;
 
+  /* เริ่มจากกลาง dot */
   left:50%;
-  bottom:100%;                /* ยิงขึ้น */
-  transform:translateX(-50%);
+  top:50%;
 
   width:2px;
-  height:60px;                /* ⭐ เพิ่มความยาว */
+  height:80px;
+
+  /* ⭐ เอียงขึ้นซ้าย 45° */
+  transform:
+    translate(-50%,-50%)
+    rotate(-135deg);
+
+  transform-origin:bottom;
 
   background:linear-gradient(
     to top,
@@ -379,8 +393,14 @@ body{
   animation:redLaserPulse .7s infinite;
   pointer-events:none;
 
-  z-index:15;                 /* ⭐ เหนือ dot */
+  z-index:15;
 }
+@keyframes redLaserPulse{
+  0%{opacity:.3}
+  50%{opacity:1}
+  100%{opacity:.3}
+}
+
 
 /* ===== NEON GRID OVERLAY ===== */
 #neonGrid{
@@ -635,6 +655,7 @@ window.adminReset=async()=>{
 
 </body>
 </html>
+
 
 
 
