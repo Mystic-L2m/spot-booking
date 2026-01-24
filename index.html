@@ -550,6 +550,7 @@ const names=[ "LGoHo","GinTonic","Cabernet","SLANE","TheDalmore","Wulinagye",
 let queue=1,locked=false,scale=1,booked=[];
 let laserLock = false;
 let activeLaser = null;
+let scrollingToDot = false;
   
 const members=[],dots=document.getElementById("dots");
 const list=document.getElementById("memberList");
@@ -601,22 +602,39 @@ members.forEach((m,i)=>{
     mapWrapper.style.pointerEvents = "none";
     mapWrapper.parentElement.style.overflow = "hidden";
 
-    // 1️⃣ เลื่อน map ไปก่อน
-    dot.scrollIntoView({
-      behavior:"smooth",
-      block:"center",
-      inline:"center"
-    });
+    scrollingToDot = true;
 
-    // 2️⃣ รอให้ scroll + repaint เสร็จ
-    requestAnimationFrame(()=>{
-      requestAnimationFrame(()=>{
+dot.scrollIntoView({
+  behavior:"smooth",
+  block:"center",
+  inline:"center"
+});
 
-        // 3️⃣ ค่อยยิง laser (ตำแหน่งจะตรงแล้ว)
-        drawLaserFromListToDot(m, dot);
+// 🔁 รอจน scroll หยุดจริง
+const scrollParent = mapWrapper.parentElement;
 
-      });
-    });
+let lastScrollTop = scrollParent.scrollTop;
+let lastScrollLeft = scrollParent.scrollLeft;
+
+const waitScrollEnd = ()=>{
+  const st = scrollParent.scrollTop;
+  const sl = scrollParent.scrollLeft;
+
+  if(st === lastScrollTop && sl === lastScrollLeft){
+    scrollingToDot = false;
+
+    // ✅ ค่อยยิง laser ตอนนี้ (ตำแหน่งนิ่งแล้ว)
+    drawLaserFromListToDot(m, dot);
+    return;
+  }
+
+  lastScrollTop = st;
+  lastScrollLeft = sl;
+  requestAnimationFrame(waitScrollEnd);
+};
+
+requestAnimationFrame(waitScrollEnd);
+
 
     // ⏱ auto clear ทุกอย่าง
     setTimeout(()=>{
@@ -709,6 +727,7 @@ window.adminReset=async()=>{
 
 </body>
 </html>
+
 
 
 
