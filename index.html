@@ -353,35 +353,42 @@ body{
 .header::before{ top:0; }
 .header::after{ bottom:0; }
 
-/* ===== LASER LINK : LABEL → DOT (RED TRON) ===== */
+/* ===== RED LASER LINK : LABEL → DOT ===== */
+.dot{
+  position:absolute;
+  z-index:1; /* ให้เป็นฐาน */
+}
+
 .dot.show-label::before{
   content:"";
   position:absolute;
+
+  /* เริ่มจากกลาง dot */
   left:50%;
-  top:-42px;                 /* ระยะจากจุดขึ้นไป */
+  bottom:100%;          /* ยิงขึ้นไปหา label */
   transform:translateX(-50%);
 
   width:2px;
   height:34px;
 
   background:linear-gradient(
-    to bottom,
-    rgba(255,80,80,0),
-    rgba(255,80,80,.95),
-    rgba(255,80,80,0)
+    to top,
+    rgba(255,60,60,0),
+    rgba(255,60,60,.95),
+    rgba(255,60,60,0)
   );
 
   box-shadow:
-    0 0 10px rgba(255,80,80,.9),
-    0 0 22px rgba(255,80,80,.8);
+    0 0 10px rgba(255,60,60,.9),
+    0 0 24px rgba(255,60,60,.8);
 
-  animation:laserPulse 0.8s infinite;
+  animation:redLaserPulse .7s infinite;
   pointer-events:none;
-  z-index:2;
+
+  z-index:2; /* อยู่ใต้ label แต่เหนือ dot */
 }
 
-/* ===== LASER ANIMATION ===== */
-@keyframes laserPulse{
+@keyframes redLaserPulse{
   0%{
     opacity:.3;
     filter:brightness(1);
@@ -395,6 +402,7 @@ body{
     filter:brightness(1);
   }
 }
+
 
   
 </style>
@@ -615,6 +623,7 @@ window.adminReset=async()=>{
 
 </body>
 </html>
+
 
 
 
