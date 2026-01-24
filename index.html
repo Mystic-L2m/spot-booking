@@ -493,33 +493,44 @@ function tronPrompt(msg){
 
 function drawLaserFromListToDot(listEl, dotEl){
   const svg = document.getElementById("laserLayer");
-  svg.innerHTML = ""; // ล้างเส้นเก่า
+  svg.innerHTML = "";
 
   const r1 = listEl.getBoundingClientRect();
   const r2 = dotEl.getBoundingClientRect();
 
-  const x1 = r1.right;
-  const y1 = r1.top + r1.height / 2;
+  const line = document.createElementNS(
+    "http://www.w3.org/2000/svg",
+    "line"
+  );
 
-  const x2 = r2.left + r2.width / 2;
-  const y2 = r2.top + r2.height / 2;
-
-  const line = document.createElementNS("http://www.w3.org/2000/svg","line");
-
-  line.setAttribute("x1",x1);
-  line.setAttribute("y1",y1);
-  line.setAttribute("x2",x2);
-  line.setAttribute("y2",y2);
   line.setAttribute("class","laser-line");
 
   svg.appendChild(line);
+
+  // ฟังก์ชันอัปเดตตำแหน่ง
+  const update = ()=>{
+    const a = listEl.getBoundingClientRect();
+    const b = dotEl.getBoundingClientRect();
+
+    line.setAttribute("x1", a.right);
+    line.setAttribute("y1", a.top + a.height / 2);
+    line.setAttribute("x2", b.left + b.width / 2);
+    line.setAttribute("y2", b.top + b.height / 2);
+  };
+
+  update();
+
+  activeLaser = { update };
 }
+
 
 
   
 </script>
 
 <script type="module">
+
+  
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
@@ -538,10 +549,16 @@ const names=[ "LGoHo","GinTonic","Cabernet","SLANE","TheDalmore","Wulinagye",
 
 let queue=1,locked=false,scale=1,booked=[];
 let laserLock = false;
+let activeLaser = null;
   
 const members=[],dots=document.getElementById("dots");
 const list=document.getElementById("memberList");
 
+mapWrapper.parentElement.addEventListener("scroll", ()=>{
+  if(activeLaser) activeLaser.update();
+});
+
+  
 names.forEach((n,i)=>{
   const d=document.createElement("div");
   d.className="member";
@@ -571,7 +588,8 @@ members.forEach((m,i)=>{
     document.querySelectorAll(".dot.show-label")
       .forEach(d=>d.classList.remove("show-label"));
     document.getElementById("laserLayer").innerHTML="";
-
+    activeLaser = null;
+    
     const dot=document.querySelector(`.dot[data-q="${i+1}"]`);
     if(!dot) return;
 
@@ -604,7 +622,8 @@ members.forEach((m,i)=>{
     setTimeout(()=>{
       dot.classList.remove("show-label");
       document.getElementById("laserLayer").innerHTML="";
-
+      activeLaser = null;
+      
       laserLock = false;
       mapWrapper.style.pointerEvents = "";
       mapWrapper.parentElement.style.overflow = "";
@@ -675,6 +694,7 @@ window.adminUndo=async()=>{
   set(stateRef,{queue,locked,booked});
   
   document.getElementById("laserLayer").innerHTML="";
+  activeLaser = null;
 }
 
 window.adminReset=async()=>{
@@ -682,12 +702,14 @@ window.adminReset=async()=>{
   set(stateRef,{queue:1,locked:false,booked:[]});
   
   document.getElementById("laserLayer").innerHTML="";
+  activeLaser = null;
 }
 </script>
 <svg id="laserLayer"></svg>
 
 </body>
 </html>
+
 
 
 
