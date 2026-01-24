@@ -126,26 +126,18 @@ body{
 /* ===== DOT OWNER LABEL ===== */
 .dot-label{
   position:absolute;
-
-  /* ⭐ ย้ายไปด้านบนซ้าย */
-  bottom:120%;
-  right:120%;
-
-  /* ตำแหน่งมาตรฐาน: ลอยตรงเหนือจุด */
-bottom:130%;
-left:50%;
-transform:translateX(-50%);
-
-
+  bottom:110%;
+  left:50%;
+  transform:translateX(-50%);
   opacity:0;
-  transition:opacity .2s ease;
+  transition:opacity .2s ease, transform .2s ease;
 
   font-size:11px;
   white-space:nowrap;
-  padding:3px 8px;
+  padding:3px 7px;
 
   color:#9befff;
-  background:rgba(0,15,35,.95);
+  background:rgba(0,15,35,.9);
   border:1px solid rgba(0,255,255,.9);
   border-radius:4px;
 
@@ -155,7 +147,6 @@ transform:translateX(-50%);
   pointer-events:none;
   z-index:20;
 }
-
 /* ===== FORCE SHOW LABEL (RED NEON) ===== */
 .dot.show-label .dot-label{
   color:#ffd6d6;
@@ -201,13 +192,8 @@ transform:translateX(-50%);
 /* ===== FORCE SHOW (WHEN CLICK FROM LIST) ===== */
 .dot.show-label .dot-label{
   opacity:1;
-
-  /* ⭐ ขยับเฉียงด้วยตำแหน่ง */
-  transform:
-    translateX(-50%)
-    translate(-28px, -12px);
+  transform:translateX(-50%) translateY(-4px);
 }
-
 /* ===== FORCE SHOW DOT (RED NEON) ===== */
 .dot.show-label{
   background:#ff2b2b;
@@ -373,15 +359,11 @@ transform:translateX(-50%);
   position:absolute;
 
   left:50%;
-  top:-6px;          /* ⭐ ยิงจากขอบบน dot */
+  bottom:100%;                /* ยิงขึ้น */
+  transform:translateX(-50%);
+
   width:2px;
-  height:50px;
-
-  transform:
-    translateX(-50%)
-    rotate(-35deg);  /* ⭐ มุมพอดีกับ label */
-
-  transform-origin:bottom;
+  height:60px;                /* ⭐ เพิ่มความยาว */
 
   background:linear-gradient(
     to top,
@@ -396,15 +378,9 @@ transform:translateX(-50%);
 
   animation:redLaserPulse .7s infinite;
   pointer-events:none;
-  z-index:15;
-}
 
-@keyframes redLaserPulse{
-  0%{opacity:.3}
-  50%{opacity:1}
-  100%{opacity:.3}
+  z-index:15;                 /* ⭐ เหนือ dot */
 }
-
 
 /* ===== NEON GRID OVERLAY ===== */
 #neonGrid{
@@ -659,9 +635,6 @@ window.adminReset=async()=>{
 
 </body>
 </html>
-
-
-
 
 
 
