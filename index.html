@@ -353,6 +353,48 @@ body{
 .header::before{ top:0; }
 .header::after{ bottom:0; }
 
+/* ===== LASER LINK : LABEL → DOT (RED TRON) ===== */
+.dot.show-label::before{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:-42px;                 /* ระยะจากจุดขึ้นไป */
+  transform:translateX(-50%);
+
+  width:2px;
+  height:34px;
+
+  background:linear-gradient(
+    to bottom,
+    rgba(255,80,80,0),
+    rgba(255,80,80,.95),
+    rgba(255,80,80,0)
+  );
+
+  box-shadow:
+    0 0 10px rgba(255,80,80,.9),
+    0 0 22px rgba(255,80,80,.8);
+
+  animation:laserPulse 0.8s infinite;
+  pointer-events:none;
+  z-index:2;
+}
+
+/* ===== LASER ANIMATION ===== */
+@keyframes laserPulse{
+  0%{
+    opacity:.3;
+    filter:brightness(1);
+  }
+  50%{
+    opacity:1;
+    filter:brightness(1.6);
+  }
+  100%{
+    opacity:.3;
+    filter:brightness(1);
+  }
+}
 
   
 </style>
@@ -573,6 +615,7 @@ window.adminReset=async()=>{
 
 </body>
 </html>
+
 
 
 
