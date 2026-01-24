@@ -131,9 +131,11 @@ body{
   bottom:120%;
   right:120%;
 
-  /* ⭐ เอียง 45 องศา */
-  transform:rotate(-45deg);
-  transform-origin:bottom right;
+  /* ตำแหน่งมาตรฐาน: ลอยตรงเหนือจุด */
+bottom:130%;
+left:50%;
+transform:translateX(-50%);
+
 
   opacity:0;
   transition:opacity .2s ease;
@@ -199,8 +201,13 @@ body{
 /* ===== FORCE SHOW (WHEN CLICK FROM LIST) ===== */
 .dot.show-label .dot-label{
   opacity:1;
-  transform:translateX(-50%) translateY(-4px);
+
+  /* ⭐ ขยับเฉียงด้วยตำแหน่ง */
+  transform:
+    translateX(-50%)
+    translate(-28px, -12px);
 }
+
 /* ===== FORCE SHOW DOT (RED NEON) ===== */
 .dot.show-label{
   background:#ff2b2b;
@@ -365,17 +372,14 @@ body{
   content:"";
   position:absolute;
 
-  /* เริ่มจากกลาง dot */
   left:50%;
-  top:50%;
-
+  top:-6px;          /* ⭐ ยิงจากขอบบน dot */
   width:2px;
-  height:80px;
+  height:50px;
 
-  /* ⭐ เอียงขึ้นซ้าย 45° */
   transform:
-    translate(-50%,-50%)
-    rotate(-135deg);
+    translateX(-50%)
+    rotate(-35deg);  /* ⭐ มุมพอดีกับ label */
 
   transform-origin:bottom;
 
@@ -392,9 +396,9 @@ body{
 
   animation:redLaserPulse .7s infinite;
   pointer-events:none;
-
   z-index:15;
 }
+
 @keyframes redLaserPulse{
   0%{opacity:.3}
   50%{opacity:1}
@@ -655,6 +659,7 @@ window.adminReset=async()=>{
 
 </body>
 </html>
+
 
 
 
