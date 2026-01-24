@@ -567,10 +567,10 @@ function render(){
 // ===== CLICK NAME → SHOW DOT LABEL =====
 members.forEach((m,i)=>{
   m.onclick=()=>{
-
-    // ลบ label เก่า
+    // ล้างสถานะเก่า
     document.querySelectorAll(".dot.show-label")
       .forEach(d=>d.classList.remove("show-label"));
+    document.getElementById("laserLayer").innerHTML="";
 
     const dot=document.querySelector(`.dot[data-q="${i+1}"]`);
     if(!dot) return;
@@ -578,22 +578,29 @@ members.forEach((m,i)=>{
     // แสดง dot + label แดง
     dot.classList.add("show-label");
 
-    // 🔒 ล็อกแผนที่
+    // 🔒 ล็อก map
     laserLock = true;
     mapWrapper.style.pointerEvents = "none";
     mapWrapper.parentElement.style.overflow = "hidden";
 
-    // 🔴 ยิง laser
-    drawLaserFromListToDot(m, dot);
-
-    // เลื่อนแผนที่
+    // 1️⃣ เลื่อน map ไปก่อน
     dot.scrollIntoView({
       behavior:"smooth",
       block:"center",
       inline:"center"
     });
 
-    // ⏱️ ซ่อนทุกอย่างพร้อมกัน
+    // 2️⃣ รอให้ scroll + repaint เสร็จ
+    requestAnimationFrame(()=>{
+      requestAnimationFrame(()=>{
+
+        // 3️⃣ ค่อยยิง laser (ตำแหน่งจะตรงแล้ว)
+        drawLaserFromListToDot(m, dot);
+
+      });
+    });
+
+    // ⏱ auto clear ทุกอย่าง
     setTimeout(()=>{
       dot.classList.remove("show-label");
       document.getElementById("laserLayer").innerHTML="";
@@ -602,9 +609,9 @@ members.forEach((m,i)=>{
       mapWrapper.style.pointerEvents = "";
       mapWrapper.parentElement.style.overflow = "";
     },3000);
+  };
+});
 
-  }; // ❗ ปิด onclick
-});   // ❗ ปิด forEach
 
 
 onValue(stateRef,s=>{
@@ -681,6 +688,7 @@ window.adminReset=async()=>{
 
 </body>
 </html>
+
 
 
 
