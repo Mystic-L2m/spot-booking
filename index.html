@@ -116,6 +116,10 @@ body{
   justify-content:center;
   pointer-events:auto;
 
+  position:absolute;
+  overflow:visible;   /* ⭐ สำคัญมาก */
+  z-index:5;          /* ⭐ สร้าง stacking context */
+  
   /* core glow */
   box-shadow:
     0 0 10px #0ff,
@@ -623,6 +627,7 @@ window.adminReset=async()=>{
 
 </body>
 </html>
+
 
 
 
