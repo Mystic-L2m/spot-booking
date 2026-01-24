@@ -387,28 +387,6 @@ body{
 
 
 
-#laserLayer{
-  position:fixed;
-  inset:0;
-  width:100vw;
-  height:100vh;
-  pointer-events:none;
-  z-index:50; /* สูงกว่า map แต่ต่ำกว่า popup */
-}
-
-.laser-line{
-  stroke:#ff3b3b;
-  stroke-width:2;
-  filter:drop-shadow(0 0 6px #ff3b3b)
-         drop-shadow(0 0 14px rgba(255,60,60,.9));
-  stroke-dasharray:6 6;
-  animation:laserFlow .4s linear infinite;
-}
-
-@keyframes laserFlow{
-  from{ stroke-dashoffset:0 }
-  to{ stroke-dashoffset:-24 }
-}
   
 </style>
 </head>
@@ -490,33 +468,6 @@ function tronPrompt(msg){
     document.body.appendChild(o);
   });
 }
-
-function drawLaserFromListToDot(listEl, dotEl){
-  const svg = document.getElementById("laserLayer");
-  svg.innerHTML = ""; // ล้างเส้นเก่า
-
-  const r1 = listEl.getBoundingClientRect();
-  const r2 = dotEl.getBoundingClientRect();
-
-  const x1 = r1.right;
-  const y1 = r1.top + r1.height / 2;
-
-  const x2 = r2.left + r2.width / 2;
-  const y2 = r2.top + r2.height / 2;
-
-  const line = document.createElementNS("http://www.w3.org/2000/svg","line");
-
-  line.setAttribute("x1",x1);
-  line.setAttribute("y1",y1);
-  line.setAttribute("x2",x2);
-  line.setAttribute("y2",y2);
-  line.setAttribute("class","laser-line");
-
-  svg.appendChild(line);
-}
-
-
-  
 </script>
 
 <script type="module">
@@ -574,10 +525,7 @@ members.forEach((m,i)=>{
 
     // แสดงชื่อ
     dot.classList.add("show-label");
-    
-    // 🔴 ยิง laser จากชื่อ → จุดจริง
-    drawLaserFromListToDot(m, dot);
-    
+
     // เลื่อนแผนที่ไปยังจุด
     dot.scrollIntoView({
       behavior:"smooth",
@@ -610,8 +558,6 @@ mapWrapper.onclick=async e=>{
 
   if(booked.some(p=>Math.hypot(p.x-x,p.y-y)<28)){
     await tronAlert("❌ Spot already taken");return;
-
-  document.getElementById("laserLayer").innerHTML="";  
   }
 
   booked.push({x,y,q:queue});
@@ -650,23 +596,16 @@ window.adminUndo=async()=>{
   if(!booked.length)return;
   booked.pop(); queue=Math.max(queue-1,1); locked=false;
   set(stateRef,{queue,locked,booked});
-  
-  document.getElementById("laserLayer").innerHTML="";
 }
 
 window.adminReset=async()=>{
   if(await tronPrompt("Password")!=="7890")return;
   set(stateRef,{queue:1,locked:false,booked:[]});
-  
-  document.getElementById("laserLayer").innerHTML="";
 }
 </script>
-<svg id="laserLayer"></svg>
 
 </body>
 </html>
-
-
 
 
 
