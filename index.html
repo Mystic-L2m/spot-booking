@@ -387,28 +387,6 @@ body{
 
 
 
-#laserLayer{
-  position:fixed;
-  inset:0;
-  width:100vw;
-  height:100vh;
-  pointer-events:none;
-  z-index:50; /* สูงกว่า map แต่ต่ำกว่า popup */
-}
-
-.laser-line{
-  stroke:#ff3b3b;
-  stroke-width:2;
-  filter:drop-shadow(0 0 6px #ff3b3b)
-         drop-shadow(0 0 14px rgba(255,60,60,.9));
-  stroke-dasharray:6 6;
-  animation:laserFlow .4s linear infinite;
-}
-
-@keyframes laserFlow{
-  from{ stroke-dashoffset:0 }
-  to{ stroke-dashoffset:-24 }
-}
   
 </style>
 </head>
@@ -490,47 +468,9 @@ function tronPrompt(msg){
     document.body.appendChild(o);
   });
 }
-
-function drawLaserFromListToDot(listEl, dotEl){
-  const svg = document.getElementById("laserLayer");
-  svg.innerHTML = "";
-
-  const r1 = listEl.getBoundingClientRect();
-  const r2 = dotEl.getBoundingClientRect();
-
-  const line = document.createElementNS(
-    "http://www.w3.org/2000/svg",
-    "line"
-  );
-
-  line.setAttribute("class","laser-line");
-
-  svg.appendChild(line);
-
-  // ฟังก์ชันอัปเดตตำแหน่ง
-  const update = ()=>{
-    const a = listEl.getBoundingClientRect();
-    const b = dotEl.getBoundingClientRect();
-
-    line.setAttribute("x1", a.right);
-    line.setAttribute("y1", a.top + a.height / 2);
-    line.setAttribute("x2", b.left + b.width / 2);
-    line.setAttribute("y2", b.top + b.height / 2);
-  };
-
-  update();
-
-  activeLaser = { update };
-}
-
-
-
-  
 </script>
 
 <script type="module">
-
-  
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
@@ -548,18 +488,9 @@ const names=[ "LGoHo","GinTonic","Cabernet","SLANE","TheDalmore","Wulinagye",
 "17thHIBIKI","B52","GREENLABEL","IRONBALLS" ];
 
 let queue=1,locked=false,scale=1,booked=[];
-let laserLock = false;
-let activeLaser = null;
-let scrollingToDot = false;
-  
 const members=[],dots=document.getElementById("dots");
 const list=document.getElementById("memberList");
 
-mapWrapper.parentElement.addEventListener("scroll", ()=>{
-  if(activeLaser) activeLaser.update();
-});
-
-  
 names.forEach((n,i)=>{
   const d=document.createElement("div");
   d.className="member";
@@ -585,71 +516,29 @@ function render(){
 // ===== CLICK NAME → SHOW DOT LABEL =====
 members.forEach((m,i)=>{
   m.onclick=()=>{
-    // ล้างสถานะเก่า
+    // ลบ label ที่แสดงอยู่ก่อน
     document.querySelectorAll(".dot.show-label")
       .forEach(d=>d.classList.remove("show-label"));
-    document.getElementById("laserLayer").innerHTML="";
-    activeLaser = null;
-    
+
     const dot=document.querySelector(`.dot[data-q="${i+1}"]`);
     if(!dot) return;
 
-    // แสดง dot + label แดง
+    // แสดงชื่อ
     dot.classList.add("show-label");
 
-    // 🔒 ล็อก map
-    laserLock = true;
-    mapWrapper.style.pointerEvents = "none";
-    mapWrapper.parentElement.style.overflow = "hidden";
+    // เลื่อนแผนที่ไปยังจุด
+    dot.scrollIntoView({
+      behavior:"smooth",
+      block:"center",
+      inline:"center"
+    });
 
-    scrollingToDot = true;
-
-dot.scrollIntoView({
-  behavior:"smooth",
-  block:"center",
-  inline:"center"
-});
-
-// 🔁 รอจน scroll หยุดจริง
-const scrollParent = mapWrapper.parentElement;
-
-let lastScrollTop = scrollParent.scrollTop;
-let lastScrollLeft = scrollParent.scrollLeft;
-
-const waitScrollEnd = ()=>{
-  const st = scrollParent.scrollTop;
-  const sl = scrollParent.scrollLeft;
-
-  if(st === lastScrollTop && sl === lastScrollLeft){
-    scrollingToDot = false;
-
-    // ✅ ค่อยยิง laser ตอนนี้ (ตำแหน่งนิ่งแล้ว)
-    drawLaserFromListToDot(m, dot);
-    return;
-  }
-
-  lastScrollTop = st;
-  lastScrollLeft = sl;
-  requestAnimationFrame(waitScrollEnd);
-};
-
-requestAnimationFrame(waitScrollEnd);
-
-
-    // ⏱ auto clear ทุกอย่าง
+    // ซ่อนอัตโนมัติ
     setTimeout(()=>{
       dot.classList.remove("show-label");
-      document.getElementById("laserLayer").innerHTML="";
-      activeLaser = null;
-      
-      laserLock = false;
-      mapWrapper.style.pointerEvents = "";
-      mapWrapper.parentElement.style.overflow = "";
     },3000);
   };
 });
-
-
 
 onValue(stateRef,s=>{
   const v=s.val(); if(!v)return;
@@ -658,7 +547,6 @@ onValue(stateRef,s=>{
 });
 
 mapWrapper.onclick=async e=>{
-  if(laserLock) return;
   if(locked){await tronAlert("❌ Reservation closed");return;}
   if(e.target.id!=="map")return;
   const name=names[queue-1];
@@ -670,8 +558,6 @@ mapWrapper.onclick=async e=>{
 
   if(booked.some(p=>Math.hypot(p.x-x,p.y-y)<28)){
     await tronAlert("❌ Spot already taken");return;
-
-  document.getElementById("laserLayer").innerHTML="";  
   }
 
   booked.push({x,y,q:queue});
@@ -701,32 +587,46 @@ function drawDot(x,y,q){
 
 
 
-window.zoomIn=()=>{if(laserLock) return;scale=Math.min(scale+.1,3);mapWrapper.style.transform=`scale(${scale})`}
-window.zoomOut=()=>{if(laserLock) return;scale=Math.max(scale-.1,.5);mapWrapper.style.transform=`scale(${scale})`}
-window.resetZoom=()=>{if(laserLock) return;scale=1;mapWrapper.style.transform="scale(1)"}
+window.zoomIn=()=>{scale=Math.min(scale+.1,3);mapWrapper.style.transform=`scale(${scale})`}
+window.zoomOut=()=>{scale=Math.max(scale-.1,.5);mapWrapper.style.transform=`scale(${scale})`}
+window.resetZoom=()=>{scale=1;mapWrapper.style.transform="scale(1)"}
 
 window.adminUndo=async()=>{
   if(await tronPrompt("Password")!=="7890")return;
   if(!booked.length)return;
   booked.pop(); queue=Math.max(queue-1,1); locked=false;
   set(stateRef,{queue,locked,booked});
-  
-  document.getElementById("laserLayer").innerHTML="";
-  activeLaser = null;
 }
 
 window.adminReset=async()=>{
   if(await tronPrompt("Password")!=="7890")return;
   set(stateRef,{queue:1,locked:false,booked:[]});
-  
-  document.getElementById("laserLayer").innerHTML="";
-  activeLaser = null;
 }
 </script>
-<svg id="laserLayer"></svg>
 
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
