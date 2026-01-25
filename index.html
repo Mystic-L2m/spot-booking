@@ -554,6 +554,50 @@ function render(){
   if(!locked && members[queue-1]) members[queue-1].classList.add("active");
   statusBar.textContent=locked?"ALL RESERVED — LOCKED":`Current Queue: ${queue}`;
 }
+
+function createLaser(fromEl, toEl){
+  const svg = document.getElementById("laserLayer");
+  svg.innerHTML = "";
+
+  const from = fromEl.getBoundingClientRect();
+  const to   = toEl.getBoundingClientRect();
+  const box  = mapWrapper.getBoundingClientRect();
+
+  const x1 = from.left + from.width/2 - box.left;
+  const y1 = from.top  + from.height/2 - box.top;
+
+  const x2 = to.left + to.width/2 - box.left;
+  const y2 = to.top  + to.height/2 - box.top;
+
+  const line = document.createElementNS("http://www.w3.org/2000/svg","line");
+  line.setAttribute("x1",x1);
+  line.setAttribute("y1",y1);
+  line.setAttribute("x2",x2);
+  line.setAttribute("y2",y2);
+  line.setAttribute("stroke","#ff3c3c");
+  line.setAttribute("stroke-width","2");
+  line.setAttribute("stroke-dasharray","8 14");
+
+  svg.appendChild(line);
+
+  let offset = 0;
+  const anim = setInterval(()=>{
+    offset -= 4;
+    line.setAttribute("stroke-dashoffset", offset);
+  },30);
+
+  activeLaser = {
+    stop(){
+      clearInterval(anim);
+      svg.innerHTML = "";
+      activeLaser = null;
+    }
+  };
+
+  return () => activeLaser?.stop();
+}
+
+  
 // ===== CLICK NAME → SHOW DOT LABEL =====
 members.forEach((m,i)=>{
   m.onclick = async ()=>{
@@ -564,31 +608,32 @@ members.forEach((m,i)=>{
 
     lockUI();
 
-    // 1️⃣ ล้างของเดิม
+    // ล้างของเดิม
     document.querySelectorAll(".dot.show-label")
       .forEach(d=>d.classList.remove("show-label"));
     document.getElementById("laserLayer").innerHTML="";
 
-    // 2️⃣ scroll ไปก่อน
+    // scroll ไปก่อน
     dot.scrollIntoView({
       behavior:"smooth",
       block:"center",
       inline:"center"
     });
 
-    await new Promise(r=>setTimeout(r,700)); // ⏳ รอ scroll จบ
+    await new Promise(r=>setTimeout(r,700));
 
-    // 3️⃣ แสดง label + dot แดง
+    // แสดง dot + label
     dot.classList.add("show-label");
 
-    await new Promise(r=>setTimeout(r,400)); // ⏳ รอ animation
+    await new Promise(r=>setTimeout(r,300));
 
-    // 4️⃣ สร้าง laser
+    // สร้าง laser
     const stopLaser = createLaser(m, dot);
 
-    await new Promise(r=>setTimeout(r,2000)); // ⏳ laser วิ่ง
+    // ⭐ แสดงทั้งหมด 3 วินาที
+    await new Promise(r=>setTimeout(r,3000));
 
-    // 5️⃣ ล้างทุกอย่าง
+    // ล้างพร้อมกัน
     stopLaser();
     dot.classList.remove("show-label");
 
@@ -683,6 +728,7 @@ mapWrapper.parentElement.addEventListener("scroll", ()=>{
 
 </body>
 </html>
+
 
 
 
