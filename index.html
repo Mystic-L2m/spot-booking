@@ -437,15 +437,6 @@ body{
       <img id="map" src="map.jpg">
       
       <div id="dots"></div>
-      <svg id="laserLayer"
-     style="
-       position:absolute;
-       inset:0;
-       pointer-events:none;
-       z-index:25;
-     ">
-</svg>
-
       <div id="neonGrid"></div>
     </div>
   </div>
@@ -526,9 +517,6 @@ const names=[ "LGoHo","GinTonic","Cabernet","SLANE","TheDalmore","Wulinagye",
 "17thHIBIKI","B52","GREENLABEL","IRONBALLS" ];
 
 let queue=1,locked=false,scale=1,booked=[];
-let uiLocked = false;      // 🔒 ล็อคการกดทั้งหมด
-let activeLaser = null;   // laser ที่กำลังทำงาน
-  
 const members=[],dots=document.getElementById("dots");
 const list=document.getElementById("memberList");
 
@@ -554,93 +542,32 @@ function render(){
   if(!locked && members[queue-1]) members[queue-1].classList.add("active");
   statusBar.textContent=locked?"ALL RESERVED — LOCKED":`Current Queue: ${queue}`;
 }
-
-function createLaser(fromEl, toEl){
-  const svg = document.getElementById("laserLayer");
-  svg.innerHTML = "";
-
-  const from = fromEl.getBoundingClientRect();
-  const to   = toEl.getBoundingClientRect();
-  const box  = mapWrapper.getBoundingClientRect();
-
-  const x1 = from.left + from.width/2 - box.left;
-  const y1 = from.top  + from.height/2 - box.top;
-
-  const x2 = to.left + to.width/2 - box.left;
-  const y2 = to.top  + to.height/2 - box.top;
-
-  const line = document.createElementNS("http://www.w3.org/2000/svg","line");
-  line.setAttribute("x1",x1);
-  line.setAttribute("y1",y1);
-  line.setAttribute("x2",x2);
-  line.setAttribute("y2",y2);
-  line.setAttribute("stroke","#ff3c3c");
-  line.setAttribute("stroke-width","2");
-  line.setAttribute("stroke-dasharray","8 14");
-
-  svg.appendChild(line);
-
-  let offset = 0;
-  const anim = setInterval(()=>{
-    offset -= 4;
-    line.setAttribute("stroke-dashoffset", offset);
-  },30);
-
-  activeLaser = {
-    stop(){
-      clearInterval(anim);
-      svg.innerHTML = "";
-      activeLaser = null;
-    }
-  };
-
-  return () => activeLaser?.stop();
-}
-
-  
 // ===== CLICK NAME → SHOW DOT LABEL =====
 members.forEach((m,i)=>{
-  m.onclick = async ()=>{
-    if(uiLocked) return;
-
-    const dot = document.querySelector(`.dot[data-q="${i+1}"]`);
-    if(!dot) return;
-
-    lockUI();
-
-    // ล้างของเดิม
+  m.onclick=()=>{
+    // ลบ label ที่แสดงอยู่ก่อน
     document.querySelectorAll(".dot.show-label")
       .forEach(d=>d.classList.remove("show-label"));
-    document.getElementById("laserLayer").innerHTML="";
 
-    // scroll ไปก่อน
+    const dot=document.querySelector(`.dot[data-q="${i+1}"]`);
+    if(!dot) return;
+
+    // แสดงชื่อ
+    dot.classList.add("show-label");
+
+    // เลื่อนแผนที่ไปยังจุด
     dot.scrollIntoView({
       behavior:"smooth",
       block:"center",
       inline:"center"
     });
 
-    await new Promise(r=>setTimeout(r,700));
-
-    // แสดง dot + label
-    dot.classList.add("show-label");
-
-    await new Promise(r=>setTimeout(r,300));
-
-    // สร้าง laser
-    const stopLaser = createLaser(m, dot);
-
-    // ⭐ แสดงทั้งหมด 3 วินาที
-    await new Promise(r=>setTimeout(r,3000));
-
-    // ล้างพร้อมกัน
-    stopLaser();
-    dot.classList.remove("show-label");
-
-    unlockUI();
+    // ซ่อนอัตโนมัติ
+    setTimeout(()=>{
+      dot.classList.remove("show-label");
+    },3000);
   };
 });
-
 
 onValue(stateRef,s=>{
   const v=s.val(); if(!v)return;
@@ -704,33 +631,10 @@ window.adminReset=async()=>{
   if(await tronPrompt("Password")!=="7890")return;
   set(stateRef,{queue:1,locked:false,booked:[]});
 }
-
-function lockUI(){
-  uiLocked = true;
-  mapWrapper.style.pointerEvents = "none";
-  list.style.pointerEvents = "none";
-}
-
-function unlockUI(){
-  uiLocked = false;
-  mapWrapper.style.pointerEvents = "";
-  list.style.pointerEvents = "";
-}
-mapWrapper.parentElement.addEventListener("scroll", ()=>{
-  if(activeLaser){
-    document.getElementById("laserLayer").innerHTML="";
-    activeLaser = null;
-  }
-});
-
-  
 </script>
 
 </body>
 </html>
-
-
-
 
 
 
