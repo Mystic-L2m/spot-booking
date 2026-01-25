@@ -418,6 +418,18 @@ body{
   cursor: url("Location Select.cur") 16 16, crosshair;
 }
 
+/* ===== CURSOR : MEMBER LIST ===== */
+
+/* รายชื่อปกติ */
+.member{
+  cursor: url("cursor/list-hover.png") 16 16, pointer;
+}
+
+/* รายชื่อที่จองแล้ว */
+.member.reserved{
+  cursor: url("cursor/list-reserved.png") 16 16, pointer;
+}
+
   
 </style>
 </head>
@@ -639,6 +651,7 @@ window.adminReset=async()=>{
 
 </body>
 </html>
+
 
 
 
